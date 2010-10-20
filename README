@@ -1,0 +1,37 @@
+1. Waht is ytl
+
+ Ytl is translator from CRuby VM (aka YARV) to X86-32/X86-64 Native Code.
+Ytl uses ytljit as code generate library.
+
+2. Install
+
+  Install ytljit
+    gem install ytljit
+
+  Enjoy or take pains
+
+3. Sample
+
+  ruby lib/ytl.rb test/basictest.rb
+
+"copy"     # This message is for debug
+"copy"     # This message is for debug
+"copy"     # This message is for debug
+"copy"     # This message is for debug
+1
+1.9
+3
+14930352
+4
+14
+
+3. License
+
+  Ruby's
+
+4. Author
+
+Miura Hideki
+m-72 at tf6.so-net.ne.jp (e-mail)
+http://twitter.com/miura1729    (twitter)
+http://d.hatena.ne.jp/miura1729 (blog in japanese)   
