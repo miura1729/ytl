@@ -85,6 +85,13 @@ module YTL
       end
     end
 
+    if options[:disasm] then
+      tnode.code_space_tab.each do |cs|
+        cs.fill_disasm_cache
+      end
+      tnode.code_space.disassemble
+    end
+
     tcs = tnode.code_space
     tcs.call(tcs.base_address)
   end
