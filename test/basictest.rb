@@ -20,6 +20,18 @@ end
 
 p fib(35)
 
+=begin
+def fib2(x)
+  if x < 2 then
+    1.0
+  else
+    fib2(x + -1) + fib2(x + -2)
+  end
+end
+
+p fib2(35)
+=end
+
 def blk0(x)
   yield(x) + 2
 end

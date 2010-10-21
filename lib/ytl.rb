@@ -1,32 +1,93 @@
 require 'ytljit'
 require 'pp'
+require 'optparse'
 
 include YTLJit
+module YTL
+  include YTLJit
+  
+  ISEQ_OPTS = {  
+    :peephole_optimization    => true,
+    :inline_const_cache       => false,
+    :specialized_instruction  => false,
+  }
 
-opts = {  
-  :peephole_optimization    => true,
-  :inline_const_cache       => false,
-  :specialized_instruction  => false,}
+  def self.parse_opt(argv)
+    ytlopt = {}
+    opt = OptionParser.new
+    
+    opt.on('--disasm', 'Disasemble generated code') do |f|
+      ytlopt[:disasm] = f
+    end
 
+    opt.on('--dump-yarv', 'Dump YARV byte code') do |f|
+      ytlopt[:dump_yarv] = f
+    end
 
-is = RubyVM::InstructionSequence.compile(File.read(ARGV[0]), ARGV[0], "", 0,
-                                         opts).to_a
-iseq = VMLib::InstSeqTree.new(nil, is)
-# pp iseq
+    opt.on('--disp-signature', 'Display signature of method') do |f|
+      ytlopt[:disp_signature] = f
+    end
 
-tr = VM::YARVTranslatorSimple.new([iseq])
-tnode = tr.translate
-ci_context = VM::CollectInfoContext.new(tnode)
-tnode.collect_info(ci_context)
+    opt.on('--dump-context', 'Dump context(registor/stack) for debug') do |f|
+      ytlopt[:dump_context] = f
+    end
 
-ti_context = VM::TypeInferenceContext.new(tnode)
-begin
-  tnode.collect_candidate_type(ti_context, [], [])
-end until ti_context.convergent
-ti_context = tnode.collect_candidate_type(ti_context, [], [])
+    opt.on('--write-code [=FILE]', 'Write generating code') do |f|
+      ytlopt[:write_code] = f
+    end
 
-c_context = VM::CompileContext.new(tnode)
-c_context = tnode.compile(c_context)
-tcs = tnode.code_space
-tcs.call(tcs.base_address)
+    opt.on('--write-node-before-type-inference [=FILE]', 
+           'Write node of before type inference') do |f|
+      ytlopt[:write_node_before_ti] = f
+    end
 
+    opt.on('--write-node-after-type-inference [=FILE]', 
+           'Write node of after type inference') do |f|
+      ytlopt[:write_node_after_ti] = f
+    end
+
+    opt.parse!(argv)
+    ytlopt
+  end
+  
+  def self.main(options)
+    is = RubyVM::InstructionSequence.compile(File.read(ARGV[0]), ARGV[0], 
+                                             "", 0, ISEQ_OPTS).to_a
+    iseq = VMLib::InstSeqTree.new(nil, is)
+    if options[:dump_yarv] then
+      pp iseq
+    end
+    
+    tr = VM::YARVTranslatorSimple.new([iseq])
+    tnode = tr.translate
+    ci_context = VM::CollectInfoContext.new(tnode)
+    tnode.collect_info(ci_context)
+
+    if fn = options[:write_node_before_ti] then
+      File.open(fn, "w") do |fp|
+        fp.print Marshal.dump(tnode)
+      end
+    end
+
+    ti_context = VM::TypeInferenceContext.new(tnode)
+    begin
+      tnode.collect_candidate_type(ti_context, [], [])
+    end until ti_context.convergent
+    ti_context = tnode.collect_candidate_type(ti_context, [], [])
+    
+    c_context = VM::CompileContext.new(tnode)
+    c_context.options = options
+    c_context = tnode.compile(c_context)
+
+    if fn = options[:write_node_after_ti] then
+      File.open(fn, "w") do |fp|
+        fp.print Marshal.dump(tnode)
+      end
+    end
+
+    tcs = tnode.code_space
+    tcs.call(tcs.base_address)
+  end
+end
+
+YTL::main(YTL::parse_opt(ARGV))
