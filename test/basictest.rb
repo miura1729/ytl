@@ -40,3 +40,29 @@ end
 
 p blk0(1) {|a| a + 1}
 p blk1(1) {|a| blk0(a) {|b| b + a}}
+
+def mul(x, y)
+  x * y
+end
+
+p mul(30, 40)
+p mul(30, -40)
+p mul(-30, 40)
+p mul(-30, -40)
+p mul(30.0, 40.0)
+p mul(30.0, -40.0)
+p mul(-30.0, 40.0)
+p mul(-30.0, -40.0)
+
+def div(x, y)
+  x / y
+end
+
+p div(30, 4)
+p div(30, -4)
+p div(-30, 4)
+p div(-30, -4)
+p div(30.0, 7.0)
+p div(30.0, -7.0)
+p div(-30.0, 7.0)
+p div(-30.0, -7.0)
