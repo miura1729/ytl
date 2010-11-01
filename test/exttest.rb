@@ -1,7 +1,7 @@
 module YTL
-  class TypedData
+  class Memory
   end
 end
 
-a = YTL::TypedData.new
-p a
+a = YTL::Memory.instance;p a[0x106667b8, :machine_word]
+p a[0x106667b8, :float]
