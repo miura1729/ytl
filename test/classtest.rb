@@ -8,7 +8,7 @@ class Foo
   end
 
   def initialize
-    p "bar"
+    p "Foo initialize"
   end
 end
 
@@ -21,7 +21,7 @@ end
 a = Foo.new
 a.bar
 
-p Foo.new
+p a
 b = Bar.new
 b.bar
 b.baz

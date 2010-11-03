@@ -6,6 +6,10 @@ p id(1)
 p id(1.9)
 
 def array
+  a = [3, 5, 6]
+  p a
+  a[1] = 1
+  p a
   [1, 2, 3][0] + [1, 2, 3][1]  
 end
 p array
@@ -84,3 +88,17 @@ p 1 >= 2
 p :foo
 p :foo == :foo
 p :foo == :bar
+#=end
+
+def multi_type_var
+  a = 1
+  p a
+  a = "a"
+  p a
+  a = 1.0
+  p a
+#  p 1.0
+end
+
+multi_type_var
+

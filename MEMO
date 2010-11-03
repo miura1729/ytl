@@ -1,0 +1,12 @@
+2010-11-03    <miura@MIURA-PC>
+
+* vm_sendnode.rb (YTLJit::VM::Node::SendNewNode#initialize): 
+  
+  initializeは実行して最後の式ではなく、selfを返す変則的な動きをする。
+このとき、selfを得るためにinitializeを呼び出す際にselfがTMPR3に入る
+のを利用してそれを使っている。これはinitializeがTMPR3を壊した場合、
+必ずバグる。もし、怪しい動きをした場合はTMPR3が壊れていないか確かめること。
+逆にTMPR3を効率の理由から壊したいときはこのinitializeの代替案を考えること。
+
+
+
