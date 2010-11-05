@@ -1,3 +1,4 @@
+#=begin
 class Foo
   def bar
     p "Foo#bar"
@@ -8,7 +9,8 @@ class Foo
   end
 
   def initialize
-    p "bar"
+    p "initialize Foo"
+    p self
   end
 end
 
@@ -25,3 +27,22 @@ p Foo.new
 b = Bar.new
 b.bar
 b.baz
+
+class Baz
+  def self.alloc
+    p "alloc"
+  end
+  p self
+end
+
+p Baz.new
+p Baz.alloc
+
+#=end
+=begin
+class Asd
+end
+
+class <<self
+end
+=end
