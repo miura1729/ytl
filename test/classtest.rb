@@ -1,3 +1,4 @@
+#=begin
 class Foo
   def bar
     p "Foo#bar"
@@ -25,3 +26,22 @@ p a
 b = Bar.new
 b.bar
 b.baz
+
+class Baz
+  def self.alloc
+    p "alloc"
+  end
+  p self
+end
+
+p Baz.new
+p Baz.alloc
+
+#=end
+=begin
+class Asd
+end
+
+class <<self
+end
+=end

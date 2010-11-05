@@ -70,11 +70,18 @@ module YTL
       end
     end
 
+    dmylit = VM::Node::LiteralNode.new(tnode, nil)
+    arg = [dmylit, dmylit, dmylit]
+    sig = []
+    arg.each do |ele|
+      sig.push RubyType::DefaultType0.new
+    end
+
     ti_context = VM::TypeInferenceContext.new(tnode)
     begin
-      tnode.collect_candidate_type(ti_context, [], [])
+      tnode.collect_candidate_type(ti_context, arg, sig)
     end until ti_context.convergent
-    ti_context = tnode.collect_candidate_type(ti_context, [], [])
+    ti_context = tnode.collect_candidate_type(ti_context, arg, sig)
     
     c_context = VM::CompileContext.new(tnode)
     c_context.options = options
