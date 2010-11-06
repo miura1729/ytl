@@ -28,14 +28,14 @@ b.bar
 b.baz
 
 class Baz
-  def self.alloc
+  p self
+  def self.allocate
     p "alloc"
   end
-  p self
 end
 
 p Baz.new
-p Baz.alloc
+#p Baz.alloc
 
 #=end
 =begin

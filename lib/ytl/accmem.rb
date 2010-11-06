@@ -14,7 +14,7 @@ module YTLJit
         add_special_send_node :[]
 
         def collect_candidate_type_regident(context, slf)
-          if slf.ruby_type == YTL::Memory then
+          if slf.ruby_type <= YTL::Memory then
             kind = @arguments[4]
             case kind
             when LiteralNode
@@ -22,15 +22,28 @@ module YTLJit
               when :char, :word, :dword, :machine_word
                 fixtype = RubyType::BaseType.from_ruby_class(Fixnum)
                 add_type(context.to_signature, fixtype)
-              when :float
+              when :float 
                 floattype = RubyType::BaseType.from_ruby_class(Float)
                 add_type(context.to_signature, floattype)
               end
             else
               raise "Not support yet #{kind.class} "
             end
-
             context
+
+          elsif slf.ruby_type < YTLJit::AsmType::Pointer or
+              slf.ruby_type < YTLJit::AsmType::Array then
+            tt = YTLJit::AsmType::PointedData
+            pointedtype = RubyType::BaseType.from_ruby_class(tt)
+            add_type(context.to_signature, pointedtype)
+
+          elsif slf.ruby_type < YTLJit::AsmType::Struct or
+              slf.ruby_type < YTLJit::AsmType::Union or 
+              slf.ruby_type < YTLJit::StructMember then
+            tt = YTLJit::AsmType::StructMember
+            stmemtype = RubyType::BaseType.from_ruby_class(tt)
+            add_type(context.to_signature, stmem)
+
           else
             super
           end
@@ -39,7 +52,7 @@ module YTLJit
         def compile(context)
           slf = @arguments[2]
           slf.decide_type_once(context.to_signature)
-          if slf.type.ruby_type == YTL::Memory then
+          if slf.type.ruby_type <= YTL::Memory then
             kind = @arguments[4]
             context = @arguments[3].compile(context)
             asm = context.assembler
@@ -69,7 +82,37 @@ module YTLJit
               raise "Not support yet #{kind.class} "
             end
             context.ret_node = self
-            context
+            return context
+
+          elsif slf.type.ruby_type <= YTLJit::AsmType::TypeCommon then
+            obj = nil
+            case slf
+            when LiteralNode
+              obj = slf.value
+              
+            when ConstantRefNode
+              node = slf.value_node
+              case node
+              when LiteralNode
+                obj = node.value
+              end
+            end
+
+            if obj then
+              idxnode = @arguments[3]
+              index = nil
+              if idxnode.is_a?(ConstantRefNode)
+                idxnode = idxnode.value_node
+              end
+
+              if idxnode.is_a?(LiteralNode)
+                index = idxnode.value
+                val = obj[index]
+                return context
+              end
+            end
+
+            super
           else
             super
           end
