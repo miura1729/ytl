@@ -15,6 +15,7 @@ module YTL
 
   def self.parse_opt(argv)
     ytlopt = {}
+    ytlopt[:execute_before_compile] = []
     opt = OptionParser.new
     
     opt.on('--disasm', 'Disasemble generated code') do |f|
@@ -33,18 +34,23 @@ module YTL
       ytlopt[:dump_context] = f
     end
 
-    opt.on('--write-code [=FILE]', 'Write generating code') do |f|
+    opt.on('--write-code =FILE', 'Write generating code') do |f|
       ytlopt[:write_code] = f
     end
 
-    opt.on('--write-node-before-type-inference [=FILE]', 
+    opt.on('--write-node-before-type-inference =FILE', 
            'Write node of before type inference') do |f|
       ytlopt[:write_node_before_ti] = f
     end
 
-    opt.on('--write-node-after-type-inference [=FILE]', 
+    opt.on('--write-node-after-type-inference =FILE', 
            'Write node of after type inference') do |f|
       ytlopt[:write_node_after_ti] = f
+    end
+
+    opt.on('-r FILE', '--execute-before-compile =FILE', 
+           'Execute ruby program (execute by CRuby)') do |f|
+      ytlopt[:execute_before_compile].push f
     end
 
     opt.parse!(argv)
@@ -52,6 +58,16 @@ module YTL
   end
   
   def self.main(options)
+    tr_context = VM::YARVContext.new
+    iseqs = []
+    
+    options[:execute_before_compile].each do |fn|
+      rf = File.read(fn)
+      prog = eval(rf)
+      is = RubyVM::InstructionSequence.compile(prog, fn, "", 1, ISEQ_OPTS).to_a
+      iseqs.push VMLib::InstSeqTree.new(nil, is)
+    end
+
     is = RubyVM::InstructionSequence.compile(File.read(ARGV[0]), ARGV[0], 
                                              "", 0, ISEQ_OPTS).to_a
     iseq = VMLib::InstSeqTree.new(nil, is)
@@ -60,7 +76,7 @@ module YTL
     end
     
     tr = VM::YARVTranslatorSimple.new([iseq])
-    tnode = tr.translate
+    tnode = tr.translate(tr_context)
     ci_context = VM::CollectInfoContext.new(tnode)
     tnode.collect_info(ci_context)
 
