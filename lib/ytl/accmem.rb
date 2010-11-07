@@ -39,7 +39,7 @@ module YTLJit
 
           elsif slf.ruby_type < YTLJit::AsmType::Struct or
               slf.ruby_type < YTLJit::AsmType::Union or 
-              slf.ruby_type < YTLJit::StructMember then
+              slf.ruby_type < YTLJit::AsmType::StructMember then
             tt = YTLJit::AsmType::StructMember
             stmemtype = RubyType::BaseType.from_ruby_class(tt)
             add_type(context.to_signature, stmem)
