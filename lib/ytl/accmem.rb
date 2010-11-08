@@ -13,34 +13,70 @@ module YTLJit
 
         add_special_send_node :[]
 
+        def fill_result_cache(context)
+          slf = @arguments[2]
+          slfval = @arguments[2].get_constant_value
+          if slfval then
+            slfval =slfval[0]
+
+            idxval = @arguments[3].get_constant_value
+            if idxval then
+              idxval = idxval[0]
+              @result_cache = slfval[idxval]
+            end
+          end
+
+          context
+        end
+
         def collect_candidate_type_regident(context, slf)
           if slf.ruby_type <= YTL::Memory then
             kind = @arguments[4]
-            kvalue = nil
+            kvalue = kind.get_constant_value
 
-            case kind
-            when LiteralNode
-              kvalue = kind.value
+            if kvalue then
+              kvalue =kvalue[0]
+              
+              case kvalue
+              when :char, :word, :dword, :machine_word
+                fixtype = RubyType::BaseType.from_ruby_class(Fixnum)
+                add_type(context.to_signature, fixtype)
+                
+              when :float 
+                floattype = RubyType::BaseType.from_ruby_class(Float)
+                add_type(context.to_signature, floattype)
+                
+              when AsmType::StructMember
+                if kvalue.type.is_a?(AsmType::Scalar) then
+                  if kvalue.type.kind == :int and
+                      kvalue.type.size == AsmType::MACHINE_WORD.size then
+                    ttype = RubyType::BaseType.from_ruby_class(Fixnum)
+                    add_type(context.to_signature, ttype)
+                  else
+                    raise "Unkown type #{kvalue.type}"
+                  end
+                else
+                  raise "Unkown type #{kvalue}"
+                end
 
-            when SendElementRefNode
-              kvalue = AsmType::Scalar
+              when AsmType::Scalar
+                if kvalue.kind == :int and 
+                    kvalue.size ==AsmType::MACHINE_WORD.size then
+                  ttype = RubyType::BaseType.from_ruby_class(Fixnum)
+                  add_type(context.to_signature, ttype)
 
+                else
+                  raise "Unkown type"
+                end
+
+              else
+                raise "Unkown type #{kvalue}"
+
+              end
+              
             else
-              raise "Not support yet #{kind.class} "
-            end
-            
-            case kvalue
-            when :char, :word, :dword, :machine_word
               fixtype = RubyType::BaseType.from_ruby_class(Fixnum)
               add_type(context.to_signature, fixtype)
-              
-            when :float 
-              floattype = RubyType::BaseType.from_ruby_class(Float)
-              add_type(context.to_signature, floattype)
-
-            when AsmType::StructMember, AsmType::Scalar
-              ttype = RubyType::BaseType.from_ruby_class(kvalue.type)
-              add_type(context.to_signature, ttype)
             end
 
             context
@@ -73,21 +109,23 @@ module YTLJit
           slf = @arguments[2]
           slf.decide_type_once(context.to_signature)
           if slf.type.ruby_type <= YTL::Memory then
-            kind = @arguments[4]
-            context = @arguments[3].compile(context)
             asm = context.assembler
+
+            kind = @arguments[4]
             kvalue = nil
             case kind
             when LiteralNode
               kvalue = kind.value
 
             else
-              context = @arguments[4].compile(context)
+              context = kind.compile(context)
               if context.ret_reg.is_a?(OpVarImmidiateAddress) then
                 objid = (context.ret_reg.value >> 1)
                 kvalue = ObjectSpace._id2ref(objid)
               end
             end
+
+            context = @arguments[3].compile(context)
 
             case kvalue
             when :machine_word
@@ -152,34 +190,21 @@ module YTLJit
             
           elsif slf.type.ruby_type <= AsmType::TypeCommon then
             context = @arguments[2].compile(context)
-            obj = nil
-            case slf
-            when LiteralNode
-              obj = slf.value
-              
-            when ConstantRefNode
-              node = slf.value_node
-              case node
-              when LiteralNode
-                obj = node.value
-              end
-            end
+            obj = slf.get_constant_value
             
             if obj == nil and 
                 context.ret_reg.is_a?(OpVarImmidiateAddress) then
               objid = (context.ret_reg.value >> 1)
               obj = ObjectSpace._id2ref(objid)
+            else
+              obj = obj[0]
             end
             
             if obj then
-              idxnode = @arguments[3]
-              index = nil
-              if idxnode.is_a?(ConstantRefNode)
-                idxnode = idxnode.value_node
-              end
-              
-              if idxnode.is_a?(LiteralNode)
-                index = idxnode.value
+              index = @arguments[3].get_constant_value
+
+              if index then
+                index = index[0]
                 val = obj[index]
                 add = lambda { val.address }
                 context.ret_reg = OpVarImmidiateAddress.new(add)
@@ -206,9 +231,9 @@ module YTLJit
             if slf.ruby_type.is_a?(Class) then
               case slfnode
               when ConstantRefNode
-                case slfnode.value_node
+                clstop = slfnode.value_node
+                case clstop
                 when ClassTopNode
-                  clstop = slfnode.value_node
                   tt = RubyType::BaseType.from_ruby_class(clstop.klass_object)
                   @type_list.add_type(context.to_signature, tt)
                   
