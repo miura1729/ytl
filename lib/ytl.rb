@@ -90,7 +90,7 @@ module YTL
     arg = [dmylit, dmylit, dmylit]
     sig = []
     arg.each do |ele|
-      sig.push RubyType::DefaultType0.new
+      sig.push RubyType::BaseType.from_ruby_class(NilClass)
     end
 
     ti_context = VM::TypeInferenceContext.new(tnode)
@@ -98,7 +98,7 @@ module YTL
       tnode.collect_candidate_type(ti_context, arg, sig)
     end until ti_context.convergent
     ti_context = tnode.collect_candidate_type(ti_context, arg, sig)
-    
+
     c_context = VM::CompileContext.new(tnode)
     c_context.options = options
     c_context = tnode.compile(c_context)
