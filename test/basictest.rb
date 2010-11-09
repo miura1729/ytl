@@ -101,9 +101,22 @@ multi_type_var
 def test_while
   i = 10
   j = 0
+  k = 10
   while i > 0
-    j = j + i
+    while k > 0
+      j = j + i
+      k = k - 1
+    end
     i = i - 1
+    k = 10
+  end
+  p j
+
+  i = 10
+  j = 0
+  while i > 0
+    i = i - 1
+    j = j + i
   end
   p j
 end
