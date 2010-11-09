@@ -102,3 +102,14 @@ end
 
 multi_type_var
 
+def test_while
+  i = 10
+  j = 0
+  while i > 0
+    j = j + i
+    i = i - 1
+  end
+  p j
+end
+
+test_while
