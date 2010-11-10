@@ -104,4 +104,6 @@ module YTL
   end
 end
 
-YTL::main(YTL::parse_opt(ARGV))
+if __FILE__ == $0 then
+  YTL::main(YTL::parse_opt(ARGV))
+end

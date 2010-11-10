@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
+require 'ytl'
+
+opt = YTL::parse_opt(ARGV)
+if ARGV[0] == nil
+  print "#{$0} [OPTS] file.rb \n"
+  print "  use --help for detail \n"
+else
+  YTL::main(opt)
+end
