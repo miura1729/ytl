@@ -83,6 +83,7 @@ module YTL
     ti_context = tnode.collect_candidate_type(ti_context, arg, sig)
     
     c_context = VM::CompileContext.new(tnode)
+    c_context.current_method_signature.push sig
     c_context.options = options
     c_context = tnode.compile(c_context)
 

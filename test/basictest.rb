@@ -20,6 +20,7 @@ end
 
 p fib(35)
 
+=begin
 def fib2(x)
   if x < 2 then
     1.0
@@ -41,6 +42,15 @@ end
 p blk0(1) {|a| a + 1}
 p blk1(1) {|a| blk0(a) {|b| b + a}}
 
+=end
+=begin
+def blk3
+  yield
+end
+
+p blk3 { "abc"}
+p blk3 { 1 + 3 }
+=end
 def mul(x, y)
   x * y
 end
