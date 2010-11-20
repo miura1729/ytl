@@ -98,8 +98,9 @@ module YTL
       tnode.collect_candidate_type(ti_context, arg, sig)
     end until ti_context.convergent
     ti_context = tnode.collect_candidate_type(ti_context, arg, sig)
-
+    
     c_context = VM::CompileContext.new(tnode)
+    c_context.current_method_signature.push sig
     c_context.options = options
     c_context = tnode.compile(c_context)
 
@@ -121,4 +122,6 @@ module YTL
   end
 end
 
-YTL::main(YTL::parse_opt(ARGV))
+if __FILE__ == $0 then
+  YTL::main(YTL::parse_opt(ARGV))
+end

@@ -235,7 +235,7 @@ module YTLJit
                 case clstop
                 when ClassTopNode
                   tt = RubyType::BaseType.from_ruby_class(clstop.klass_object)
-                  @type_list.add_type(context.to_signature, tt)
+                  add_type(context.to_signature, tt)
                   
                 else
                   raise "Unkown node type in constant #{slfnode.value_node.class}"

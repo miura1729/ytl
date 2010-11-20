@@ -10,8 +10,12 @@ module YTLJit
   end
 end
 
+def id(x)
+  x
+end
+
 a = YTL::Memory.instance
-b = 0x106667b8
+b = 0x1046ce30
 p YTLJit::AsmType::VALUE
 p YTLJit::AsmType::RBasic[:klass]
 p YTLJit::AsmType::RString[:as][:heap][:len]
@@ -22,3 +26,4 @@ p a[b, :float]
 p a[b, YTLJit::AsmType::RString[:basic][:flags]]
 p a[b, YTLJit::AsmType::RString[:as][:heap][:len]]
 p a[b, :machine_word]
+p id(b)

@@ -45,6 +45,13 @@ end
 p blk0(1) {|a| a + 1}
 p blk1(1) {|a| blk0(a) {|b| b + a}}
 
+def blk3
+  yield
+end
+
+p id(blk3 { "abc"})
+p id(blk3 { 1 })
+
 def mul(x, y)
   x * y
 end
@@ -88,7 +95,8 @@ p 1 >= 2
 p :foo
 p :foo == :foo
 p :foo == :bar
-#=end
+p :foo != :foo
+p :foo != :bar
 
 def multi_type_var
   a = 1
