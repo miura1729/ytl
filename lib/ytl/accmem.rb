@@ -8,7 +8,7 @@ module YTLJit
   module VM
     module Node
 
-      class SendElementRefMemory<SendElementRefNode
+      class SendElementRefMemoryNode<SendElementRefNode
         include SendUtil
 
         add_special_send_node :[]
@@ -221,7 +221,38 @@ module YTLJit
         end
       end
 
-      class SendInstanceMemory<SendNode
+      class SendNewArenaNode<SendNewNode
+        add_special_send_node :new
+
+        def traverse_childlen
+          @arguments.each do |arg|
+            yield arg
+          end
+          yield @func
+          yield @body
+        end
+
+        def collect_candidate_type_regident(context, slf)
+          slfnode = @arguments[2]
+
+          slfcls = slfnode.get_constant_value
+          if slfcls and slfcls[0] == Runtime::Arena then
+            tt = RubyType::BaseType.from_ruby_class(slfcls[0])
+            add_type(context.to_signature, tt)
+              
+            if @initmethod.is_a?(SendInitializeNode) then
+              # Get alloc method call node
+              @initmethod = @initmethod.arguments[2]
+            end
+
+            return context
+          end
+
+          return super
+        end
+      end
+
+      class SendInstanceMemoryNode<SendNode
         add_special_send_node :instance
 
         def collect_candidate_type_regident(context, slf)
