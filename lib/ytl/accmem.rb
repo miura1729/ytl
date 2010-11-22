@@ -10,6 +10,8 @@ module YTLJit
 
       class SendElementRefMemoryNode<SendElementRefNode
         include SendUtil
+        include X86
+        include X64
 
         add_special_send_node :[]
 
@@ -48,20 +50,18 @@ module YTLJit
                 
               when AsmType::StructMember
                 if kvalue.type.is_a?(AsmType::Scalar) then
-                  if kvalue.type.kind == :int and
-                      kvalue.type.size == AsmType::MACHINE_WORD.size then
+                  if kvalue.type.kind == :int then
                     ttype = RubyType::BaseType.from_ruby_class(Fixnum)
                     add_type(context.to_signature, ttype)
                   else
-                    raise "Unkown type #{kvalue.type}"
+                    raise "Unkown type #{kvalue.type} #{kvalue.type.kind}"
                   end
                 else
                   raise "Unkown type #{kvalue}"
                 end
 
               when AsmType::Scalar
-                if kvalue.kind == :int and 
-                    kvalue.size ==AsmType::MACHINE_WORD.size then
+                if kvalue.kind == :int then
                   ttype = RubyType::BaseType.from_ruby_class(Fixnum)
                   add_type(context.to_signature, ttype)
 
@@ -102,6 +102,41 @@ module YTLJit
         end
 
         def compile_ref_scalar(context, typeobj)
+          context
+        end
+
+        def gen_read_mem(context, size)
+          asm = context.assembler
+          case size
+          when 8
+            asm.with_retry do
+              if context.ret_reg != RAX then
+                asm.mov(RAX, context.ret_reg)
+              end
+              asm.mov(RAX, INDIRECT_RAX)
+            end
+            context.ret_reg = RAX
+            
+          when 4
+            asm.with_retry do
+              if context.ret_reg != EAX then
+                asm.mov(EAX, context.ret_reg)
+              end
+              asm.mov(EAX, INDIRECT_EAX)
+            end
+            context.ret_reg = EAX
+            
+          when 2
+            asm.with_retry do
+              asm.mov(AL, context.ret_reg)
+              asm.mov(AL, INDIRECT_AL)
+            end
+            context.ret_reg = EAX
+            
+          else
+            raise "Unkown Scalar size #{kvalue}"
+          end
+
           context
         end
         
@@ -147,38 +182,13 @@ module YTLJit
               context.ret_reg = RETFR
               
             when AsmType::Scalar
-              case kvalue.size
-              when 4
-                asm.with_retry do
-                  if context.ret_reg != TMPR then
-                    asm.mov(TMPR, context.ret_reg)
-                  end
-                  asm.mov(RETR, INDIRECT_TMPR)
-                end
-                context.ret_reg = RETR
-                
-              else
-                raise "Unkown Scalar size #{kvalue}"
-              end
+              context = gen_read_mem(context, kvalue.size)
               
             when AsmType::StructMember
               typeobj = kvalue.type
               case typeobj
               when AsmType::Scalar
-                case typeobj.size
-                when 4
-                  asm.with_retry do
-                    if context.ret_reg != TMPR then
-                      asm.mov(TMPR, context.ret_reg)
-                    end
-                    src = OpIndirect.new(TMPR, kvalue.offset)
-                    asm.mov(RETR, src)
-                  end
-                  context.ret_reg = RETR
-                  
-                else
-                  raise "Unkown Scalar size #{kvalue}"
-                end
+                context = gen_read_mem(context, typeobj.size)
                 
               else
                 raise "Unkown Struct Member type #{kvalue}"
@@ -233,10 +243,8 @@ module YTLJit
         end
 
         def collect_candidate_type_regident(context, slf)
-          slfnode = @arguments[2]
-
-          slfcls = slfnode.get_constant_value
-          if slfcls and slfcls[0] == Runtime::Arena then
+          if Runtime::Arena.is_a?(slf.ruby_type) then
+            slfcls = @arguments[2].get_constant_value
             tt = RubyType::BaseType.from_ruby_class(slfcls[0])
             add_type(context.to_signature, tt)
               
@@ -252,35 +260,57 @@ module YTLJit
         end
       end
 
+      class SendAddressNode<SendNode
+        include InternalRubyType
+        add_special_send_node :address
+
+        def collect_candidate_type_regident(context, slf)
+          if slf.ruby_type == Runtime::Arena then
+            tt = RubyType::BaseType.from_ruby_class(Fixnum)
+            add_type(context.to_signature, tt)
+
+            return context
+          end
+
+          super
+        end
+
+        def compile(context)
+          context = @arguments[2].compile(context)
+          @arguments[2].decide_type_once(context.to_signature)
+          rtype = @arguments[2].type
+          rrtype = rtype.ruby_type
+          if rrtype == Runtime::Arena then
+            asm = context.assembler
+            rsdata = TypedData.new(RData, context.ret_reg)
+            asm.with_retry do
+              dmy, arena = asm.mov(TMPR, rsdata[:data])
+              asm.mov(TMPR, arena[0][:body])
+            end
+            context.ret_reg = TMPR
+            context.ret_node = self
+            context
+          else
+            super
+          end
+        end
+      end
+
       class SendInstanceMemoryNode<SendNode
         add_special_send_node :instance
 
         def collect_candidate_type_regident(context, slf)
           if YTL::Memory.is_a?(slf.ruby_type) then
-            
-            slfnode = @arguments[2]
-            if slf.ruby_type.is_a?(Class) then
-              case slfnode
-              when ConstantRefNode
-                clstop = slfnode.value_node
-                case clstop
-                when ClassTopNode
-                  tt = RubyType::BaseType.from_ruby_class(clstop.klass_object)
-                  add_type(context.to_signature, tt)
-                  
-                else
-                  raise "Unkown node type in constant #{slfnode.value_node.class}"
-                end
-                
-              else
-                raise "Unkonwn node type #{@arguments[2].class} "
-              end
+            slfcls = @arguments[2].get_constant_value
+            if slfcls then
+              tt = RubyType::BaseType.from_ruby_class(slfcls[0])
+              add_type(context.to_signature, tt)
             end
-            context
 
-          else
-            super
+            return context
           end
+
+          super
         end
 
         def compile(context)

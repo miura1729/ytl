@@ -17,9 +17,12 @@ def id(x)
   x
 end
 
-p id(YTLJit::Runtime::Arena.new.address)
+c = YTLJit::Runtime::Arena.new
 a = YTL::Memory.instance
-b = 0x1046ce30
+# b = 0x1046ce30
+b = c.address
+p b
+p c
 p YTLJit::AsmType::VALUE
 p YTLJit::AsmType::RBasic[:klass]
 p YTLJit::AsmType::RString[:as][:heap][:len]
