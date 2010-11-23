@@ -75,7 +75,7 @@ module YTL
       pp iseq
     end
     
-    tr = VM::YARVTranslatorSimple.new([iseq])
+    tr = VM::YARVTranslatorCRubyObject.new([iseq])
     tnode = tr.translate(tr_context)
     ci_context = VM::CollectInfoContext.new(tnode)
     tnode.collect_info(ci_context)

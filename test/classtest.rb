@@ -6,11 +6,14 @@ class Foo
 
   def baz
     p "Foo#baz"
+    p @a
   end
 
   def initialize
+    @a = 4
     p "initialize Foo"
     p self
+    1
   end
 end
 
@@ -21,10 +24,11 @@ class Bar<Foo
 end
 
 a = Foo.new
-a.bar
-
 p a
+a.bar
+a.baz
 b = Bar.new
+p b
 b.bar
 b.baz
 
