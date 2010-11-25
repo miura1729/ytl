@@ -5,7 +5,8 @@ spec = Gem::Specification.new do |s|
      s.summary      = "Very tiny subset of YARV to native code translator"
      s.authors      = ["Hideki Miura"]
      s.files        = [*Dir.glob("{lib}/*.rb"),
-                       *Dir.glob("{lib}/ytljit/*.rb"),
+                       *Dir.glob("{lib}/ytl/*.rb"),
+                       *Dir.glob("{runtime}/*.rb"),
                        *Dir.glob("{test}/*.rb"), 
                        *Dir.glob("{bin}/ytl"), 
 		       "README"]
