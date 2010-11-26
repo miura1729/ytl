@@ -1,5 +1,6 @@
 require 'ytljit'
 require 'ytl/accmem.rb'
+require 'ytl/importobj.rb'
 require 'pp'
 require 'optparse'
 
@@ -60,7 +61,8 @@ module YTL
   def self.main(options)
     tr_context = VM::YARVContext.new
     iseqs = []
-    
+
+    import_ruby_object(tr_context)
     options[:execute_before_compile].each do |fn|
       rf = File.read(fn)
       prog = eval(rf)
