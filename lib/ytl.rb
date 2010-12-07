@@ -120,6 +120,7 @@ module YTL
     end
 
     tcs = tnode.code_space
+    STDOUT.flush
     tcs.call(tcs.base_address)
   end
 end
