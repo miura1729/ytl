@@ -16,7 +16,8 @@ module YTL
 
   def self.parse_opt(argv)
     ytlopt = {}
-    ytlopt[:execute_before_compile] = []
+    prelude = File.join(File.dirname(__FILE__), "..", "runtime", "prelude.rb")
+    ytlopt[:execute_before_compile] = [prelude]
     opt = OptionParser.new
     
     opt.on('--disasm', 'Disasemble generated code') do |f|
@@ -60,17 +61,17 @@ module YTL
   
   def self.main(options)
     tr_context = VM::YARVContext.new
-    iseqs = []
+    progs = []
 
     import_ruby_object(tr_context)
     options[:execute_before_compile].each do |fn|
       rf = File.read(fn)
       prog = eval(rf)
-      is = RubyVM::InstructionSequence.compile(prog, fn, "", 1, ISEQ_OPTS).to_a
-      iseqs.push VMLib::InstSeqTree.new(nil, is)
+      progs.push prog
     end
 
-    is = RubyVM::InstructionSequence.compile(File.read(ARGV[0]), ARGV[0], 
+    prog = progs.join("\n") + File.read(ARGV[0])
+    is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
                                              "", 0, ISEQ_OPTS).to_a
     iseq = VMLib::InstSeqTree.new(nil, is)
     if options[:dump_yarv] then
