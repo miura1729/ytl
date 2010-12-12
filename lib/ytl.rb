@@ -68,9 +68,14 @@ module YTL
       rf = File.read(fn)
       prog = eval(rf)
       progs.push prog
+      is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
+                                             "", 0, ISEQ_OPTS).to_a
+      iseq = VMLib::InstSeqTree.new(nil, is)
+      tr = VM::YARVTranslatorCRubyObject.new([iseq])
+      tr.translate(tr_context)
     end
 
-    prog = progs.join("\n") + File.read(ARGV[0])
+    prog = File.read(ARGV[0])
     is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
                                              "", 0, ISEQ_OPTS).to_a
     iseq = VMLib::InstSeqTree.new(nil, is)
