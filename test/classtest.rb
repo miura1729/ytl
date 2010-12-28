@@ -16,6 +16,8 @@ class Foo
 end
 
 class Bar<Foo
+  p self
+  p "foobarbaz"
   def bar
     p "Bar#bar"
   end
