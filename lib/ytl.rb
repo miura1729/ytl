@@ -112,7 +112,6 @@ module YTL
     c_context.options = options
     c_context = tnode.compile(c_context)
     tnode.make_frame_struct_tab
-    $frame_struct_tab = tnode.frame_struct_tab
 
     if fn = options[:write_node_after_ti] then
       File.open(fn, "w") do |fp|
