@@ -144,3 +144,26 @@ end
 
 test_while
 
+i = 5
+a = i..7
+p a.first
+p a.last
+p a
+p Range.new(i, 2, false)
+p 1...3
+=begin
+def id(a, *b)
+  p a
+end
+id(*[1, 2, 3])
+
+=begin
+for i in 1..2
+  p i
+end
+
+for i in 1...2
+  p i
+end
+
+=end

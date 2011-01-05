@@ -6,3 +6,11 @@
     end
   end
 end
+
+a = 5
+for i in a..10
+#  for j in a..20
+    p i
+#  end
+end
+

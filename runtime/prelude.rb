@@ -14,6 +14,19 @@ class Array
   end
 end
 
+class Range
+  def each
+    i = self.first
+    e = self.last
+    while i < e
+      yield i
+      i = i + 1
+    end
+
+    e
+  end
+end
+
 class Fixnum
   def times
     i = 0
