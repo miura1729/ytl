@@ -18,12 +18,19 @@ class Range
   def each
     i = self.first
     e = self.last
-    while i < e
-      yield i
-      i = i + 1
-    end
+    if self.exclude_end? then
+      while i <= e
+        yield i
+        i = i + 1
+      end
+    else
+      while i < e
+        yield i
+        i = i + 1
+      end
+   end
 
-    e
+   e
   end
 end
 
