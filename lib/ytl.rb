@@ -1,5 +1,6 @@
 require 'ytljit'
 require 'ytl/accmem.rb'
+require 'ytl/macro.rb'
 require 'ytl/importobj.rb'
 require 'pp'
 require 'optparse'
