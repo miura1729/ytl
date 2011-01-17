@@ -4,10 +4,12 @@ module YTLJit
       def initialize
         @ret_code = [""]
         @jmp_tab = {}
+        @defined_method = {}
       end
 
       attr :ret_code
       attr :jmp_tab
+      attr :defined_method
     end
 
     module Node
@@ -25,15 +27,18 @@ module YTLJit
 
       class MethodTopNode
         def to_ruby(context)
-          context.ret_code.last << "def #{@name}"
+#          context.ret_code.last << "{ #{@name} "
+          context.ret_code.last << "{ "
           context.ret_code.push ""
           context = @body.to_ruby(context)
           args = context.ret_code.pop
           if args != "" then
-            context.ret_code.last << "(#{args})"
+            context.ret_code.last << "|#{args}|"
           end
+          context.ret_code.last << "\n"
+
           context = @body.body.to_ruby(context)
-          context.ret_code.last << "end\n"
+          context.ret_code.last << "}\n"
           context
         end
       end
@@ -49,6 +54,7 @@ module YTLJit
           end
           context.ret_code.last << "state = 0\n"
           context.ret_code.last << "while true\n"
+#          context.ret_code.last << "p state\n"
           context.ret_code.last << "case state\n"
           context.ret_code.last << "when 0\n"
           context = @body.body.to_ruby(context)
@@ -205,7 +211,7 @@ module YTLJit
 
       class LiteralNode
         def to_ruby(context)
-          context.ret_code.last << get_constant_value[0].to_s
+          context.ret_code.last << get_constant_value[0].inspect
           context
         end
       end
@@ -217,9 +223,66 @@ module YTLJit
       end
 
       class YieldNode
+        def to_ruby(context)
+          arg = @parent.arguments
+          context.ret_code.last << "yield"
+          context.ret_code.last << "("
+          arg[3..-1].each do |ae|
+            context = ae.to_ruby(context)
+            context.ret_code.last << ", "
+          end
+          context.ret_code.last.chop!
+          context.ret_code.last.chop!
+          context.ret_code.last << ")"
+          context
+        end
+      end
+
+      class FixArgCApiNode
+        API_TAB = {
+          "rb_str_append" => "+",
+          "rb_obj_as_string" => "to_s",
+        }
+        def to_ruby(context)
+          arg = @parent.arguments
+          context.ret_code.last << "("
+          context = arg[0].to_ruby(context)
+          context.ret_code.last << "."
+          context.ret_code.last << API_TAB[@name]
+          if arg[1] then
+            context.ret_code.last << "("
+            arg[1..-1].each do |ae|
+              context = ae.to_ruby(context)
+              context.ret_code.last << ", "
+            end
+            context.ret_code.last.chop!
+            context.ret_code.last.chop!
+            context.ret_code.last << ")"
+          end
+          context.ret_code.last << ")"
+          context
+        end
       end
 
       class MethodSelectNode
+        def to_ruby(context)
+          arg = @parent.arguments
+          context.ret_code.last << "("
+          context = arg[2].to_ruby(context)
+          context.ret_code.last << ".#{@name}"
+          if arg[3] then
+            context.ret_code.last << "("
+            arg[3..-1].each do |ae|
+              context = ae.to_ruby(context)
+              context.ret_code.last << ", "
+            end
+            context.ret_code.last.chop!
+            context.ret_code.last.chop!
+            context.ret_code.last << ")"
+          end
+          context.ret_code.last << ")"
+          context
+        end
       end
 
       class VariableRefCommonNode
@@ -239,18 +302,41 @@ module YTLJit
       end
 
       class SelfRefNode
+        def to_ruby(context)
+          context.ret_code.last << " self "
+          context
+        end
       end
 
       class LocalAssignNode
+        def to_ruby(context)
+          cfi = @current_frame_info
+          off = cfi.real_offset(@offset)
+          lv = cfi.frame_layout[off]
+          context.ret_code.last << "#{lv.name.to_s} = "
+          context = @val.to_ruby(context)
+          context.ret_code.last << "\n"
+          context
+        end
       end
 
       class InstanceVarRefCommonNode
       end
 
       class InstanceVarRefNode
+        def to_ruby(context)
+          context.ret_code.last << " #{@name.to_s} "
+          context
+        end
       end
 
       class InstanceVarAssignNode
+        def to_ruby(context)
+          context.ret_code.last << "#{@name.to_s} = "
+          context = @val.to_ruby(context)
+          context.ret_code.last << "\n"
+          context
+        end
       end
 
       class ConstantRefNode
@@ -261,33 +347,23 @@ module YTLJit
       end
 
       class ConstantAssignNode
-      end
-
-      class SendNode
         def to_ruby(context)
-          context = @arguments[2].to_ruby(context)
-          context.ret_code.last << ".#{@func.name}("
-          @arguments[3..-1].each do |ae|
-            context = ae.to_ruby(context)
-            context.ret_code.last << ", "
-          end
-          context.ret_code.last.chop!
-          context.ret_code.last.chop!
-          context.ret_code.last << ")"
+          context.ret_code.last << "#{@name.to_s} = "
+          context = @val.to_ruby(context)
+          context.ret_code.last << "\n"
           context
         end
       end
 
-      class SendDefineMacroNode<SendNode
-        add_special_send_node :define_macro
-        
-        def initialize(parent, func, arguments, op_flag, seqno)
-          super
-          @entity = nil
-          if @arguments[2].get_constant_value == [YTL] then
-            @entity = @arguments[1]
-            print @entity.to_ruby(ToRubyContext.new).ret_code.last
-          end
+      class SendNode
+        def to_ruby(context)
+          context = @func.to_ruby(context)
+        end
+      end
+
+      class SendEvalNode
+        def to_ruby(context)
+          @arguments[3].to_ruby(context)
         end
       end
     end
