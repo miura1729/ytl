@@ -1,6 +1,15 @@
 # runtime library written in ytl
 <<-'EOS'
 #
+def attr(x)
+  eval "def #{x}; @#{x} ; end"
+end
+
+def attr_accessor(*x)
+  code = "def #{x}; @#{x} ; end\n" + "def #{x}=(val); @#{x} = val ; end"
+  eval code
+end
+
 class Array
   def each
     i = 0

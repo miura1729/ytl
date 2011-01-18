@@ -1,8 +1,14 @@
-def attr(x)
-  eval "def #{x}; @#{x}; end"
+def myattr(*x)
+  str = ""
+  x.each do |e|
+     str = str + "def #{e}; @#{e}; end\n"
+  end
+  p str
+
+  eval str
 end
 
-attr :foo
+myattr :foo, :bar
 
 # Can't psss this test yet
 =begin

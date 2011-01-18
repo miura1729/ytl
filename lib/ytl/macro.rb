@@ -5,11 +5,13 @@ module YTLJit
         @ret_code = [""]
         @jmp_tab = {}
         @defined_method = {}
+        @work_prefix = []
       end
 
       attr :ret_code
       attr :jmp_tab
       attr :defined_method
+      attr :work_prefix
     end
 
     module Node
@@ -20,6 +22,9 @@ module YTLJit
       end
 
       class DummyNode
+        def to_ruby(context)
+          context
+        end
       end
 
       class TopNode
@@ -32,12 +37,18 @@ module YTLJit
           context.ret_code.push ""
           context = @body.to_ruby(context)
           args = context.ret_code.pop
+          pre = context.work_prefix.join('_')
           if args != "" then
             context.ret_code.last << "|#{args}|"
           end
-          context.ret_code.last << "\n"
-
+          context.ret_code.last << "#{pre}state = 0\n"
+          context.ret_code.last << "while true\n"
+          #          context.ret_code.last << "p #{pre}state\n"
+          context.ret_code.last << "case #{pre}state\n"
+          context.ret_code.last << "when 0\n"
           context = @body.body.to_ruby(context)
+          context.ret_code.last << "end\n"
+          context.ret_code.last << "end\n"
           context.ret_code.last << "}\n"
           context
         end
@@ -52,10 +63,11 @@ module YTLJit
           if args != "" then
             context.ret_code.last << "| #{args} | \n"
           end
-          context.ret_code.last << "state = 0\n"
+          pre = context.work_prefix.join('_')
+          context.ret_code.last << "#{pre}state = 0\n"
           context.ret_code.last << "while true\n"
-#          context.ret_code.last << "p state\n"
-          context.ret_code.last << "case state\n"
+          #          context.ret_code.last << "p #{pre}state\n"
+          context.ret_code.last << "case #{pre}state\n"
           context.ret_code.last << "when 0\n"
           context = @body.body.to_ruby(context)
           context.ret_code.last << "end\n"
@@ -74,13 +86,17 @@ module YTLJit
       class LocalFrameInfoNode
         def to_ruby(context)
           argpos = 0
+          visitsys = false
           @frame_layout.each do |vinf|
             if vinf.is_a?(LocalVarNode) then
               argpos = argpos + 1
-              if argpos > 3 then
+              if argpos > 3 and visitsys then
                 context = vinf.to_ruby(context)
                 context.ret_code.last << ", "
               end
+            else
+              visitsys = true
+              argpos = 0
             end
           end
           context.ret_code.last.chop!
@@ -92,7 +108,18 @@ module YTLJit
 
       class LocalVarNode
         def to_ruby(context)
-          context.ret_code.last << @name.to_s
+          case kind
+          when :arg, :local_var
+            context.ret_code.last << @name.to_s
+            
+          when :rest_arg
+            context.ret_code.last << "*#{@name.to_s}"
+            
+          else
+            p kind
+
+          end
+
           context
         end
       end
@@ -114,7 +141,7 @@ module YTLJit
 
       class SetResultNode
         def to_ruby(context)
-          context.ret_code.last << "return "
+          context.ret_code.last << "break "
           context = @value_node.to_ruby(context)
           context.ret_code.last << "\n"
           @body.to_ruby(context)
@@ -123,7 +150,8 @@ module YTLJit
 
       class PhiNode
         def to_ruby(context)
-          context.ret_code.last << "value"
+          pre = context.work_prefix.join('_')
+          context.ret_code.last << "#{pre}value"
           context
         end
       end
@@ -150,15 +178,16 @@ module YTLJit
           context.ret_code.push ""
           context = @cond.to_ruby(context)
           cc = context.ret_code.pop
+          pre = context.work_prefix.join('_')
           context.ret_code.last << "if #{cc} then\n"
           if unlessp then
-            context.ret_code.last << "state = #{blab}\n"
+            context.ret_code.last << "#{pre}state = #{blab}\n"
             context.ret_code.last << "else\n"
-            context.ret_code.last << "state = #{jlab}\n"
+            context.ret_code.last << "#{pre}state = #{jlab}\n"
           else
-            context.ret_code.last << "state = #{jlab}\n"
+            context.ret_code.last << "#{pre}state = #{jlab}\n"
             context.ret_code.last << "else\n"
-            context.ret_code.last << "state = #{blab}\n"
+            context.ret_code.last << "#{pre}state = #{blab}\n"
           end
           context.ret_code.last << "end\n"
           
@@ -190,13 +219,15 @@ module YTLJit
             context.jmp_tab[@jmp_to_node] = context.jmp_tab.size + 1
             nf = true
           end
-          context.ret_code.last << "state = #{context.jmp_tab[@jmp_to_node]}\n"
+          pre = context.work_prefix.join('_')
+          nestat = context.jmp_tab[@jmp_to_node]
+          context.ret_code.last << "#{pre}state = #{nestat}\n"
           valnode = @jmp_to_node.come_from[self]
           if valnode then
             context.ret_code.push ""
             context = valnode.to_ruby(context)
             val = context.ret_code.pop
-            context.ret_code.last << "value = #{val}\n"
+            context.ret_code.last << "#{pre}value = #{val}\n"
           end
           if nf then
             @jmp_to_node.to_ruby(context)
@@ -233,7 +264,7 @@ module YTLJit
           end
           context.ret_code.last.chop!
           context.ret_code.last.chop!
-          context.ret_code.last << ")"
+          context.ret_code.last << ")\n"
           context
         end
       end
@@ -259,7 +290,7 @@ module YTLJit
             context.ret_code.last.chop!
             context.ret_code.last << ")"
           end
-          context.ret_code.last << ")"
+          context.ret_code.last << ")\n"
           context
         end
       end
@@ -268,8 +299,14 @@ module YTLJit
         def to_ruby(context)
           arg = @parent.arguments
           context.ret_code.last << "("
-          context = arg[2].to_ruby(context)
-          context.ret_code.last << ".#{@name}"
+          if @parent.is_fcall or @parent.is_vcall then
+            context.ret_code.last << @name.to_s
+          else
+            context = arg[2].to_ruby(context)
+            p arg[2].class
+            p @name
+            context.ret_code.last << ".#{@name}"
+          end
           if arg[3] then
             context.ret_code.last << "("
             arg[3..-1].each do |ae|
@@ -280,7 +317,13 @@ module YTLJit
             context.ret_code.last.chop!
             context.ret_code.last << ")"
           end
-          context.ret_code.last << ")"
+          if arg[1].is_a?(BlockTopNode) then
+            context.ret_code.last << " "
+            context.work_prefix.push "bl"
+            context = arg[1].to_ruby(context)
+            context.work_prefix.pop
+          end
+          context.ret_code.last << ")\n"
           context
         end
       end
@@ -316,7 +359,7 @@ module YTLJit
           context.ret_code.last << "#{lv.name.to_s} = "
           context = @val.to_ruby(context)
           context.ret_code.last << "\n"
-          context
+          @body.to_ruby(context)
         end
       end
 
@@ -358,6 +401,7 @@ module YTLJit
       class SendNode
         def to_ruby(context)
           context = @func.to_ruby(context)
+          @body.to_ruby(context)
         end
       end
 
