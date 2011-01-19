@@ -42,13 +42,15 @@ module YTLJit
             context.ret_code.last << "|#{args}|"
           end
           context.ret_code.last << "#{pre}state = 0\n"
-          context.ret_code.last << "while true\n"
+          context.ret_code.last << "#{pre}value = nil\n"
+          context.ret_code.last << "evalstr = []\n"
+          context.ret_code.last << "[while true\n"
           #          context.ret_code.last << "p #{pre}state\n"
           context.ret_code.last << "case #{pre}state\n"
           context.ret_code.last << "when 0\n"
           context = @body.body.to_ruby(context)
           context.ret_code.last << "end\n"
-          context.ret_code.last << "end\n"
+          context.ret_code.last << "end, evalstr]\n"
           context.ret_code.last << "}\n"
           context
         end
@@ -65,6 +67,7 @@ module YTLJit
           end
           pre = context.work_prefix.join('_')
           context.ret_code.last << "#{pre}state = 0\n"
+          context.ret_code.last << "#{pre}value = nil\n"
           context.ret_code.last << "while true\n"
           #          context.ret_code.last << "p #{pre}state\n"
           context.ret_code.last << "case #{pre}state\n"
@@ -110,10 +113,10 @@ module YTLJit
         def to_ruby(context)
           case kind
           when :arg, :local_var
-            context.ret_code.last << @name.to_s
+            context.ret_code.last << "_#{@name.to_s}"
             
           when :rest_arg
-            context.ret_code.last << "*#{@name.to_s}"
+            context.ret_code.last << "*_#{@name.to_s}"
             
           else
             p kind
@@ -303,8 +306,6 @@ module YTLJit
             context.ret_code.last << @name.to_s
           else
             context = arg[2].to_ruby(context)
-            p arg[2].class
-            p @name
             context.ret_code.last << ".#{@name}"
           end
           if arg[3] then
@@ -339,7 +340,7 @@ module YTLJit
           cfi = @current_frame_info
           off = cfi.real_offset(@offset)
           lv = cfi.frame_layout[off]
-          context.ret_code.last << " #{lv.name.to_s} "
+          context.ret_code.last << " _#{lv.name.to_s} "
           context
         end
       end
@@ -356,7 +357,7 @@ module YTLJit
           cfi = @current_frame_info
           off = cfi.real_offset(@offset)
           lv = cfi.frame_layout[off]
-          context.ret_code.last << "#{lv.name.to_s} = "
+          context.ret_code.last << "_#{lv.name.to_s} = "
           context = @val.to_ruby(context)
           context.ret_code.last << "\n"
           @body.to_ruby(context)
@@ -407,7 +408,10 @@ module YTLJit
 
       class SendEvalNode
         def to_ruby(context)
-          @arguments[3].to_ruby(context)
+          context.ret_code.last << "evalstr <<"
+          context = @arguments[3].to_ruby(context)
+          context.ret_code.last << "\n"
+          context
         end
       end
     end

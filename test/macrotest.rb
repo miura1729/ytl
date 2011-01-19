@@ -1,11 +1,8 @@
 def myattr(*x)
   str = ""
   x.each do |e|
-     str = str + "def #{e}; @#{e}; end\n"
+     eval "def #{e}; @#{e}; end\n"
   end
-  p str
-
-  eval str
 end
 
 myattr :foo, :bar
