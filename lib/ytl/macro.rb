@@ -411,7 +411,7 @@ module YTLJit
           context.ret_code.last << "evalstr <<"
           context = @arguments[3].to_ruby(context)
           context.ret_code.last << "\n"
-          context
+          @body.to_ruby(context)
         end
       end
     end
