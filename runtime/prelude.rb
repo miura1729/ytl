@@ -32,12 +32,12 @@ class Range
     i = self.first
     e = self.last
     if self.exclude_end? then
-      while i <= e
+      while i < e
         yield i
         i = i + 1
       end
     else
-      while i < e
+      while i <= e
         yield i
         i = i + 1
       end
