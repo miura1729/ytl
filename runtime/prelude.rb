@@ -57,6 +57,25 @@ class Fixnum
 
     self
   end
+
+  def step(max, st)
+    i = self
+    while i < max
+      yield i
+      i = i + st
+    end
+
+    self
+  end
+
+  def **(n)
+    a = 1
+    while n > 0
+      a = a * self
+      n = n - 1
+    end
+    a
+  end
 end
 
 EOS
