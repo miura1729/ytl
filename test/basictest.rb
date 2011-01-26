@@ -14,6 +14,16 @@ def array
 end
 p array
 
+def array2
+  b = 3
+  a = [3, b, 6]
+  p a
+  a[1] = 1
+  p a
+  [1, 2, 2 * 3][0] + [1 * 2, 2 * 4, 3][1]  
+end
+p array2
+
 def fib(x)
   if x < 2 then
     1
