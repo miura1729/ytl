@@ -14,7 +14,7 @@ class Foo
 end
 
 myattr :foo, :bar
-a = Foo.new.myattr("abc")
+Foo.new.myattr("abc")
 
 # Can't psss this test yet
 =begin

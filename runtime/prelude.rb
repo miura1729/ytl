@@ -1,16 +1,18 @@
 # runtime library written in ytl
 <<-'EOS'
 #
-def attr(*x)
-  x.each do |ele|
-    eval "def #{ele}; @#{ele} ; end"
+class Module
+  def attr(*x)
+    x.each do |ele|
+      eval "def #{ele}; @#{ele} ; end"
+    end
   end
-end
 
-def attr_accessor(*x)
-  x.each do |ele|
-    eval "def #{ele}; @#{ele} ; end\n"
-    eval "def #{ele}=(val); @#{ele} = val ; end"
+  def attr_accessor(*x)
+    x.each do |ele|
+      eval "def #{ele}; @#{ele} ; end\n"
+      eval "def #{ele}=(val); @#{ele} = val ; end"
+    end
   end
 end
 
@@ -61,7 +63,7 @@ class Fixnum
   def step(max, st)
     i = self
     while i < max
-      yield i
+       yield i
       i = i + st
     end
 
