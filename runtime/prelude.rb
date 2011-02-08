@@ -1,3 +1,4 @@
+# -*- coding: cp932 -*-
 # runtime library written in ytl
 <<-'EOS'
 #
@@ -43,9 +44,9 @@ class Range
         yield i
         i = i + 1
       end
-   end
+    end
 
-   e
+    e
   end
 end
 

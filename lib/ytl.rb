@@ -76,22 +76,36 @@ module YTL
       tr.translate(tr_context)
     end
 
-    prog = File.read(ARGV[0])
-    is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
-                                             "", 0, ISEQ_OPTS).to_a
-    iseq = VMLib::InstSeqTree.new(nil, is)
-    if options[:dump_yarv] then
-      pp iseq
-    end
-    
-    tr = VM::YARVTranslatorCRubyObject.new([iseq])
-    tnode = tr.translate(tr_context)
-    ci_context = VM::CollectInfoContext.new(tnode)
-    tnode.collect_info(ci_context)
+    tnode = nil
+    case File.extname(ARGV[0])
+    when ".ytl"
+      File.open(ARGV[0]) do |fp|
+        tnode = Marshal.load(fp.read)
+      end
+      tnode.update_after_restore
+      if tnode.code_space then
+        tnode.code_space.call(tnode.code_space.base_address)
+        return
+      end
 
-    if fn = options[:write_node_before_ti] then
-      File.open(fn, "w") do |fp|
-        fp.print Marshal.dump(tnode)
+    when ".rb"
+      prog = File.read(ARGV[0])
+      is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
+                                               "", 0, ISEQ_OPTS).to_a
+      iseq = VMLib::InstSeqTree.new(nil, is)
+      if options[:dump_yarv] then
+        pp iseq
+      end
+    
+      tr = VM::YARVTranslatorCRubyObject.new([iseq])
+      tnode = tr.translate(tr_context)
+      ci_context = VM::CollectInfoContext.new(tnode)
+      tnode.collect_info(ci_context)
+      
+      if fn = options[:write_node_before_ti] then
+        File.open(fn, "w") do |fp|
+          fp.print Marshal.dump(tnode)
+        end
       end
     end
 
@@ -107,6 +121,12 @@ module YTL
       tnode.collect_candidate_type(ti_context, arg, sig)
     end until ti_context.convergent
     ti_context = tnode.collect_candidate_type(ti_context, arg, sig)
+
+    if fn = options[:write_node_after_ti] then
+      File.open(fn, "w") do |fp|
+        fp.print Marshal.dump(tnode)
+      end
+    end
     
     c_context = VM::CompileContext.new(tnode)
     c_context.current_method_signature.push sig
@@ -114,8 +134,9 @@ module YTL
     c_context = tnode.compile(c_context)
     tnode.make_frame_struct_tab
 
-    if fn = options[:write_node_after_ti] then
+    if fn = options[:write_code] then
       File.open(fn, "w") do |fp|
+        tnode.code_store_hook
         fp.print Marshal.dump(tnode)
       end
     end
