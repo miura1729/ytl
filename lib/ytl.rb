@@ -59,7 +59,25 @@ module YTL
     opt.parse!(argv)
     ytlopt
   end
-  
+
+  def self.dump_node(tnode, fn)
+    if defined? yield then
+      yield
+    end
+    File.open(fn, "w") do |fp|
+      ClassClassWrapper.instance_tab.keys.each do |klass|
+        if !klass.is_a?(ClassClassWrapper) then
+          fp.print "class #{klass.name}; end\n"
+        end
+      end
+
+      fp.print "Marshal.load(<<'EOS')\n"
+      fp.print Marshal.dump(tnode)
+      fp.print "\n"
+      fp.print "EOS\n"
+    end
+  end
+
   def self.main(options)
     tr_context = VM::YARVContext.new
     progs = []
@@ -80,7 +98,7 @@ module YTL
     case File.extname(ARGV[0])
     when ".ytl"
       File.open(ARGV[0]) do |fp|
-        tnode = Marshal.load(fp.read)
+        tnode = eval(fp.read, TOPLEVEL_BINDING)
       end
       tnode.update_after_restore
       if tnode.code_space then
@@ -103,9 +121,7 @@ module YTL
       tnode.collect_info(ci_context)
       
       if fn = options[:write_node_before_ti] then
-        File.open(fn, "w") do |fp|
-          fp.print Marshal.dump(tnode)
-        end
+        dump_node(tnode, fn)
       end
     end
 
@@ -123,9 +139,7 @@ module YTL
     ti_context = tnode.collect_candidate_type(ti_context, arg, sig)
 
     if fn = options[:write_node_after_ti] then
-      File.open(fn, "w") do |fp|
-        fp.print Marshal.dump(tnode)
-      end
+      dump_node(tnode, fn)
     end
     
     c_context = VM::CompileContext.new(tnode)
@@ -135,10 +149,9 @@ module YTL
     tnode.make_frame_struct_tab
 
     if fn = options[:write_code] then
-      File.open(fn, "w") do |fp|
+      dump_node(tnode, fn) {
         tnode.code_store_hook
-        fp.print Marshal.dump(tnode)
-      end
+      }
     end
 
     if options[:disasm] then
