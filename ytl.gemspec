@@ -1,7 +1,7 @@
 spec = Gem::Specification.new do |s|
      s.platform     = Gem::Platform::RUBY
      s.name         = "ytl"
-     s.version      = "0.0.2"
+     s.version      = "0.0.3"
      s.summary      = "Very tiny subset of YARV to native code translator"
      s.authors      = ["Hideki Miura"]
      s.files        = [*Dir.glob("{lib}/*.rb"),

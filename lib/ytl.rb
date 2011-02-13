@@ -37,7 +37,8 @@ module YTL
       ytlopt[:dump_context] = f
     end
 
-    opt.on('--write-code =FILE', 'Write generating code') do |f|
+    opt.on('-o FILE', '--write-code =FILE', 
+            'Write generating naitive code and node objects') do |f|
       ytlopt[:write_code] = f
     end
 
