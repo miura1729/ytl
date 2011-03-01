@@ -28,6 +28,10 @@ class Array
 
     self
   end
+
+  def at(idx)
+    self[idx]
+  end
 end
 
 class Range
@@ -63,9 +67,16 @@ class Fixnum
 
   def step(max, st)
     i = self
-    while i < max
-       yield i
-      i = i + st
+    if st > 0 then
+      while i <= max
+        yield i
+        i = i + st
+      end
+    else
+      while i >= max
+        yield i
+        i = i + st
+      end
     end
 
     self

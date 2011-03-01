@@ -57,6 +57,11 @@ module YTL
       ytlopt[:execute_before_compile].push f
     end
 
+    opt.on('-c', '--compile-only', 
+           'Stop when compile finished (not execute compiled code)') do |f|
+      ytlopt[:compile_only] = f
+    end
+
     opt.parse!(argv)
     ytlopt
   end
@@ -164,7 +169,9 @@ module YTL
 
     tcs = tnode.code_space
     STDOUT.flush
-    tcs.call(tcs.base_address)
+    if !options[:compile_only] then
+      tcs.call(tcs.base_address)
+    end
   end
 end
 
