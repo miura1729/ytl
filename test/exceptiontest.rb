@@ -7,8 +7,11 @@ def foo
   end
 
   begin
-    b = 2
-    raise ArgumentError
+    begin
+      b = 2
+      raise ArgumentError
+    rescue ArgumentError
+    end
   rescue IndexError
     p "index2"
   end

@@ -133,6 +133,7 @@ def test_while
   i = 10
   j = 0
   k = 10
+
   while i > 0
     while k > 0
       j = j + i
@@ -161,6 +162,21 @@ p a.last
 p a
 p Range.new(i, 2, false)
 p 1...3
+
+def test_poly(a, b, c)
+  if c == 1 then
+    a + b
+  else
+    a * b
+  end
+end
+
+p test_poly(2, 2, 1)
+p test_poly(2.0, 2.0, 1)
+p test_poly(2, 2, 0)
+p test_poly(2.0, 2.0, 0)
+
+
 =begin
 def id(a, *b)
   p a
