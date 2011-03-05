@@ -1,3 +1,11 @@
+def test0
+  begin
+    return
+  ensure
+    p "BAR"
+  end
+end
+
 def test1
   [1, 2, 3].each do |n|
     p n
@@ -25,6 +33,8 @@ def test3
     p "bar"
   end
 end
+
+test0
 
 test1
 test2
