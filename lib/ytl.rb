@@ -62,6 +62,11 @@ module YTL
       ytlopt[:compile_only] = f
     end
 
+    opt.on('--compile-array-as-unboxed', 
+           'Compile Array as unboxed if nesseary(not excape, not use special methods)') do |f|
+      ytlopt[:compile_array_as_uboxed] = f
+    end
+
     opt.parse!(argv)
     ytlopt
   end
@@ -124,6 +129,7 @@ module YTL
       tr = VM::YARVTranslatorCRubyObject.new([iseq])
       tnode = tr.translate(tr_context)
       ci_context = VM::CollectInfoContext.new(tnode)
+      ci_context.options = options
       tnode.collect_info(ci_context)
       
       if fn = options[:write_node_before_ti] then
@@ -139,6 +145,7 @@ module YTL
     end
 
     ti_context = VM::TypeInferenceContext.new(tnode)
+    ti_context.options = options
     begin
       tnode.collect_candidate_type(ti_context, arg, sig)
     end until ti_context.convergent
