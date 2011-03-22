@@ -42,6 +42,19 @@ end
 p Baz.new
 p Baz.alloc
 
+module Foo0
+  def mess
+    p "from included module"
+  end
+end
+
+class Foo
+  include Foo0
+end
+
+Foo.new.mess
+
+
 #=end
 =begin
 class Asd
