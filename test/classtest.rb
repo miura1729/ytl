@@ -44,16 +44,29 @@ p Baz.alloc
 
 module Foo0
   def mess
-    p "from included module"
+    p "from included module Foo0"
+  end
+end
+
+module Foo1
+  def mess
+    p "from included module Foo1"
   end
 end
 
 class Foo
   include Foo0
+  include Foo1
 end
 
 Foo.new.mess
 
+class Foo
+  extend Foo0
+  extend Foo1
+end
+
+Foo.mess
 
 #=end
 =begin
