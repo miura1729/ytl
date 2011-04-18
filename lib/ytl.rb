@@ -89,6 +89,47 @@ module YTL
     end
   end
 
+  def self.reduced_main(prog, options)
+    tr_context = VM::YARVContext.new
+
+    import_ruby_object(tr_context)
+
+    tnode = nil
+    is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
+                                             "", 0, ISEQ_OPTS).to_a
+    iseq = VMLib::InstSeqTree.new(nil, is)
+    
+    tr = VM::YARVTranslatorCRubyObject.new([iseq])
+    tnode = tr.translate(tr_context)
+
+    ci_context = VM::CollectInfoContext.new(tnode)
+    ci_context.options = options
+    tnode.collect_info(ci_context)
+
+    dmylit = VM::Node::LiteralNode.new(tnode, nil)
+    arg = [dmylit, dmylit, dmylit]
+    sig = []
+    arg.each do |ele|
+      sig.push RubyType::BaseType.from_ruby_class(NilClass)
+    end
+
+    ti_context = VM::TypeInferenceContext.new(tnode)
+    ti_context.options = options
+    begin
+      tnode.collect_candidate_type(ti_context, arg, sig)
+    end until ti_context.convergent
+    ti_context = tnode.collect_candidate_type(ti_context, arg, sig)
+
+    c_context = VM::CompileContext.new(tnode)
+    c_context.current_method_signature.push sig
+    c_context.options = options
+    c_context = tnode.compile(c_context)
+    tnode.make_frame_struct_tab
+
+    tcs = tnode.code_space
+    tcs.call(tcs.base_address)
+  end
+
   def self.main(options)
     tr_context = VM::YARVContext.new
     progs = []
@@ -128,13 +169,14 @@ module YTL
     
       tr = VM::YARVTranslatorCRubyObject.new([iseq])
       tnode = tr.translate(tr_context)
-      ci_context = VM::CollectInfoContext.new(tnode)
-      ci_context.options = options
-      tnode.collect_info(ci_context)
+    end
+
+    ci_context = VM::CollectInfoContext.new(tnode)
+    ci_context.options = options
+    tnode.collect_info(ci_context)
       
-      if fn = options[:write_node_before_ti] then
-        dump_node(tnode, fn)
-      end
+    if fn = options[:write_node_before_ti] then
+      dump_node(tnode, fn)
     end
 
     dmylit = VM::Node::LiteralNode.new(tnode, nil)

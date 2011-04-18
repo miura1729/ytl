@@ -1,4 +1,3 @@
-# -*- coding: cp932 -*-
 # runtime library written in ytl
 <<-'EOS'
 #

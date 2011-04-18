@@ -61,11 +61,13 @@ end
 
 p id(blk3 { "abc"})
 p id(blk3 { 1 })
+p blk3 { 1 }
 
 def mul(x, y)
   x * y
 end
 
+p "mul"
 p mul(30, 40)
 p mul(30, -40)
 p mul(-30, 40)
@@ -79,6 +81,7 @@ def div(x, y)
   x / y
 end
 
+p "div"
 p div(30, 4)
 p div(30, -4)
 p div(-30, 4)
@@ -91,6 +94,25 @@ p div(35, 7)
 p div(35, -7)
 p div(-35, 7)
 p div(-35, -7)
+
+def rem(x, y)
+  x % y
+end
+p "rem"
+p rem(30, 4)
+p rem(30, -4)
+p rem(-30, 4)
+p rem(-30, -4)
+p rem(35, 7)
+p rem(35, -7)
+p rem(-35, 7)
+p rem(-35, -7)
+
+p "shift"
+p 1 << 2
+p 1 << 0
+p 3 >> 1
+p 1024 >> 3
 
 p 1 < 1
 p 1 > 1
@@ -193,3 +215,4 @@ for i in 1...2
 end
 
 =end
+ 
