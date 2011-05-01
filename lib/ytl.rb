@@ -143,6 +143,7 @@ module YTL
                                              "", 0, ISEQ_OPTS).to_a
       iseq = VMLib::InstSeqTree.new(nil, is)
       tr = VM::YARVTranslatorCRubyObject.new([iseq])
+      tr_context.current_file_name = fn
       tr.translate(tr_context)
     end
 
@@ -168,6 +169,7 @@ module YTL
       end
     
       tr = VM::YARVTranslatorCRubyObject.new([iseq])
+      tr_context.current_file_name = ARGV[0]
       tnode = tr.translate(tr_context)
     end
 

@@ -1,6 +1,6 @@
 require 'ytlhelper'
 
-describe "Fixnum#+" do
+describe "The if expression" do
   it "evaluate body if expression is true" do
     prog = "a = []; if true then a = [123]; end; a"
     prog.execute_ytl.should == prog.execute_ruby
