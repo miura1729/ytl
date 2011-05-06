@@ -13,5 +13,5 @@ spec = Gem::Specification.new do |s|
      s.require_path = "lib"
      s.executables  = ['ytl']
      s.test_files   =	Dir.glob("{test}/*.rb")
-     s.add_dependency('ytljit', [">= 0.0.6"])
+     s.add_dependency('ytljit', [">= 0.0.7"])
 end

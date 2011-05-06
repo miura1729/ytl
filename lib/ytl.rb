@@ -8,6 +8,8 @@ require 'optparse'
 include YTLJit
 module YTL
   include YTLJit
+
+  VERSION = "0.0.3"
   
   ISEQ_OPTS = {  
     :peephole_optimization    => true,
@@ -225,6 +227,8 @@ module YTL
     end
   end
 end
+
+Version = "#{YTL::VERSION} (ytljit #{YTLJit::VERSION})"
 
 if __FILE__ == $0 then
   YTL::main(YTL::parse_opt(ARGV))
