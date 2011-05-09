@@ -49,7 +49,7 @@ class Range
       end
     end
 
-    e
+    self
   end
 end
 
