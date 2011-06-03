@@ -243,9 +243,9 @@ module YTLJit
         end
 
         def collect_candidate_type_regident(context, slf)
-          if Runtime::Arena.is_a?(slf.ruby_type) then
-            slfcls = @arguments[2].get_constant_value
-            tt = RubyType::BaseType.from_ruby_class(slfcls[0])
+          slfcls = @arguments[2].get_constant_value
+          tt = RubyType::BaseType.from_ruby_class(slfcls[0])
+          if tt.ruby_type == Runtime::Arena then
             add_type(context.to_signature, tt)
               
             if @initmethod.is_a?(SendInitializeNode) then

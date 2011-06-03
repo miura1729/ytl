@@ -51,6 +51,25 @@ class Range
 
     self
   end
+
+  def to_a
+    i = self.first
+    e = self.last
+    res = []
+    if self.exclude_end? then
+      while i < e
+        res.push i
+        i = i + 1
+      end
+    else
+      while i <= e
+        res.push i
+        i = i + 1
+      end
+    end
+
+    res
+  end
 end
 
 class Fixnum
