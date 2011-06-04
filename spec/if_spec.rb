@@ -32,7 +32,7 @@ describe "The if expression" do
   end
 
   it "returns result of then-body evaluation if expression is true" do
-    prog = "if true then 123 end"
+    prog = "if true then [123] end"
     prog.execute_ytl.should == prog.execute_ruby
   end
 end
