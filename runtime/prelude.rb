@@ -24,7 +24,7 @@ class Array
       yield self[i]
       i = i + 1
     end
-
+ 
     self
   end
 
