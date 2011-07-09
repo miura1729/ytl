@@ -28,6 +28,30 @@ class Array
     self
   end
 
+  def collect
+    res = []
+    i = 0
+    e = self.size
+    while i < e
+      res[i] = yield self[i]
+      i = i + 1
+    end
+
+    res
+  end
+
+  def map
+    res = []
+    i = 0
+    e = self.size
+    while i < e
+      res[i] = yield self[i]
+      i = i + 1
+    end
+
+    res
+  end
+
   def at(idx)
     self[idx]
   end
