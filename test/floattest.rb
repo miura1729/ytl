@@ -2,3 +2,10 @@ p "2.0".to_f
 p (7).to_f
 p Math.sin(3.14159265)
 p Math.sqrt(2.0)
+p (0.0).to_i
+p 1.to_i
+p 1.5.to_i
+p 1.0.to_i
+p 3.14.to_i
+p -3.00000001.to_i
+p 3.00000001.to_i
