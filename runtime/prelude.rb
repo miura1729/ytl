@@ -107,6 +107,26 @@ class Fixnum
     self
   end
 
+  def upto(n)
+    i = self
+    while i <= n
+      yield i
+      i = i + 1
+    end
+
+    self
+  end
+
+  def downto(n)
+    i = self
+    while i >= n
+      yield i
+      i = i - 1
+    end
+
+    self
+  end
+
   def step(max, st)
     i = self
     if st > 0 then

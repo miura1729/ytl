@@ -4,7 +4,8 @@ require "rbconfig"
 require "benchmark"
 
 ruby_bin = File.join(RbConfig::CONFIG["bindir"], RbConfig::CONFIG["ruby_install_name"])
-BENCH_DIR = "c:/cygwin/home/miura/src/ruby-trunk/ruby/benchmark/"
+# BENCH_DIR = "c:/cygwin/home/miura/src/ruby-trunk/ruby/benchmark/"
+BENCH_DIR = "~/cygwin/src/ruby-trunk/ruby/benchmark/"
 
 desc "run tests"
 
@@ -15,19 +16,20 @@ task :test do
 end
 
 task :bench do
-  ["bm_so_object.rb", "bm_so_nested_loop.rb", 
-  "bm_so_nbody.rb", "bm_so_binary_trees.rb", "bm_so_matrix.rb", 
-  "bm_so_mandelbrot.rb", "ao-render.rb"
-   ].each do |f|
+  ["bm_so_object.rb", "bm_so_nested_loop.rb", "bm_so_sieve.rb", 
+   "bm_so_partial_sums.rb", 
+   "bm_so_nbody.rb", "bm_so_binary_trees.rb", "bm_so_matrix.rb", 
+   "bm_so_mandelbrot.rb", "ao-render.rb"
+  ].each do |f|
     fn = File.join(BENCH_DIR, f)
     Benchmark.benchmark(
       " " * 13 + "     user     system      total      real \n", 13,
       "%10.6U %10.6Y %10.6t %10.6r\n"
-    ) do |x|
+                        ) do |x|
       print "#{f} \n"
       x.report("ytl         "){ system "ytl #{fn} > /dev/null" }
       x.report("ytl compile "){ system "ytl --compile-only #{fn} > /dev/null" }
-#      x.report("ytl unboxed "){ system "ytl --compile-array-as-unboxed #{fn} > /dev/null" }
+      #      x.report("ytl unboxed "){ system "ytl --compile-array-as-unboxed #{fn} > /dev/null" }
       x.report("ruby        "){ system "ruby #{fn} > /dev/null" }
     end
   end
