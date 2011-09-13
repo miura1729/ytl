@@ -4,8 +4,8 @@ require "rbconfig"
 require "benchmark"
 
 ruby_bin = File.join(RbConfig::CONFIG["bindir"], RbConfig::CONFIG["ruby_install_name"])
-# BENCH_DIR = "c:/cygwin/home/miura/src/ruby-trunk/ruby/benchmark/"
-BENCH_DIR = "~/cygwin/src/ruby-trunk/ruby/benchmark/"
+BENCH_DIR = "c:/cygwin/home/miura/src/ruby-trunk/ruby/benchmark/"
+#BENCH_DIR = "~/cygwin/src/ruby-trunk/ruby/benchmark/"
 
 desc "run tests"
 
@@ -16,7 +16,10 @@ task :test do
 end
 
 task :bench do
-  ["bm_so_object.rb", "bm_so_nested_loop.rb", "bm_so_sieve.rb", 
+  ["bm_app_pentomino.rb",
+   "bm_so_ackermann.rb", "bm_so_array.rb", "bm_so_concatenate.rb",
+   "bm_so_random.rb", 
+   "bm_so_object.rb", "bm_so_nested_loop.rb", "bm_so_sieve.rb", 
    "bm_so_partial_sums.rb", 
    "bm_so_nbody.rb", "bm_so_binary_trees.rb", "bm_so_matrix.rb", 
    "bm_so_mandelbrot.rb", "ao-render.rb"

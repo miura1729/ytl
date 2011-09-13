@@ -199,8 +199,8 @@ p test_poly(2, 2, 0)
 p test_poly(2.0, 2.0, 0)
 
 a = 1
-b = 2
-a, b = b, a
+b = 3
+a, b = b + 1, a
 p a
 p b
 
