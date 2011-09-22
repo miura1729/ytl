@@ -15,14 +15,14 @@ task :test do
   end
 end
 
+cnt = 0
 task :bench do
-  ["bm_app_pentomino.rb",
-   "bm_so_ackermann.rb", "bm_so_array.rb", "bm_so_concatenate.rb",
-   "bm_so_random.rb", 
+  ["bm_so_binary_trees.rb", "bm_so_matrix.rb", "bm_so_array.rb",
+   "bm_so_ackermann.rb", "bm_so_concatenate.rb", "bm_so_random.rb", 
    "bm_so_object.rb", "bm_so_nested_loop.rb", "bm_so_sieve.rb", 
-   "bm_so_partial_sums.rb", 
-   "bm_so_nbody.rb", "bm_so_binary_trees.rb", "bm_so_matrix.rb", 
-   "bm_so_mandelbrot.rb", "ao-render.rb"
+   "bm_so_partial_sums.rb", "bm_so_mandelbrot.rb",
+   "bm_so_nbody.rb", 
+   "bm_app_pentomino.rb", "ao-render.rb"
   ].each do |f|
     fn = File.join(BENCH_DIR, f)
     Benchmark.benchmark(
@@ -32,8 +32,11 @@ task :bench do
       print "#{f} \n"
       x.report("ytl         "){ system "ytl #{fn} > /dev/null" }
       x.report("ytl compile "){ system "ytl --compile-only #{fn} > /dev/null" }
-      #      x.report("ytl unboxed "){ system "ytl --compile-array-as-unboxed #{fn} > /dev/null" }
+      if cnt < 11 then
+        x.report("ytl unboxed "){ system "ytl --compile-array-as-unboxed #{fn} > /dev/null" }
+      end
       x.report("ruby        "){ system "ruby #{fn} > /dev/null" }
+      cnt += 1
     end
   end
 end
