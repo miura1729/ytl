@@ -55,6 +55,10 @@ class Array
   def at(idx)
     self[idx]
   end
+
+  def first
+    self[0]
+  end
 end
 
 class Range
