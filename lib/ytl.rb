@@ -184,6 +184,8 @@ module YTL
       tr_context.current_file_name = ARGV[0]
       tnode = tr.translate(tr_context)
     end
+    $0 = ARGV[0]
+    ARGV.shift
     
     ci_context = VM::CollectInfoContext.new(tnode)
     ci_context.options = options
