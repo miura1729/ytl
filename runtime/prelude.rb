@@ -80,6 +80,17 @@ class Range
     self
   end
 
+  def collect
+    res = []
+    i =  0
+    self.each do |n|
+      res[i] = yield self[i]
+      i = i + 1
+    end
+
+    res
+  end
+
   def to_a
     i = self.first
     e = self.last
