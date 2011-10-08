@@ -1,3 +1,4 @@
+# ytl -r runtime/thread.rb threadtest.rb
 p "start"
 a = 0
 def fib(x)
