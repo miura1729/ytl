@@ -1,0 +1,143 @@
+module YTLJit
+  module VM
+    module Node
+      class SimpleVectorRefNode<BaseNode
+        def initialize(parent, offset, basereg)
+          super(parent)
+          @offset = offset
+          @base_reg = basereg
+        end
+
+        def collect_candidate_type(context)
+          context
+        end
+
+        def compile(context)
+          asm = context.assembler
+          siz = AsmType::MACHINE_WORD.size
+          src = OpIndirect.new(@base_reg, @offset * siz)
+          asm.with_retry do
+            asm.mov(TMPR, src)
+          end
+          context.ret_reg = TMPR
+          context.ret_node = self
+          context
+        end
+      end
+      
+      class SendThreadNewNode<SendNewArenaNode
+        include SendSingletonClassUtil
+        add_special_send_node :new
+        
+        def initialize(parent, func, arguments, op_flag, seqno)
+          super
+          @yield_node = nil
+          @block_cs = CodeSpace.new
+          @block_args = []
+          @arguments.each_with_index do |ele, idx|
+            nnode = nil
+            if idx != 1 then
+              nnode = SimpleVectorRefNode.new(self, idx + 1, TMPR2)
+            else
+              nnode = @arguments[1]
+            end
+            @block_args.push nnode
+          end
+          func = DirectBlockNode.new(self, @arguments[1])
+          @yield_node = SendNode.new(self, func, @block_args, 0, 0)
+        end
+
+        def collect_info(context)
+          @arguments.each do |arg|
+            context = arg.collect_info(context)
+          end
+          context = @func.collect_info(context)
+          @body.collect_info(context)
+        end
+
+        def collect_candidate_type_regident(context, slf)
+          slfcls = @arguments[2].get_constant_value
+          cursig = context.to_signature
+          tt = RubyType::BaseType.from_ruby_class(slfcls[0])
+          if tt.ruby_type == Runtime::Thread then
+            blknode = @arguments[1]
+            yargs = @block_args
+            ysignat = @yield_node.signature(context)
+            blknode.collect_candidate_type(context, yargs, ysignat)
+
+            @arguments.zip(@block_args) do |bele, oele|
+              same_type(bele, oele, cursig, cursig, context)
+            end
+
+            tt = RubyType::BaseType.from_ruby_class(Runtime::Thread)
+            add_type(context.to_signature, tt)
+            context = @yield_node.collect_candidate_type(context)
+            return context
+          end
+
+          return super
+        end
+
+        def compile(context)
+          rect = @arguments[2].decide_type_once(context.to_signature)
+          rrtype = rect.ruby_type_raw
+          if rrtype.is_a?(ClassClassWrapper) then
+            rrtype = get_singleton_class_object(@arguments[2]).ruby_type
+            if rrtype == Runtime::Thread then
+
+              # Generate block invoker
+              tcontext = context.dup
+              tcontext.set_code_space(@block_cs)
+              asm = tcontext.assembler
+              asm.with_retry do
+                asm.mov(TMPR, FUNC_ARG[0])
+              end
+              tcontext.start_using_reg(TMPR2)
+              asm.with_retry do
+                asm.mov(TMPR2, TMPR)
+                asm.mov(THEPR, INDIRECT_TMPR2)
+              end
+              tcontext = @yield_node.compile(tcontext)
+              tcontext.end_using_reg(TMPR2)
+              asm.with_retry do
+                asm.ret
+              end
+#              p @block_cs.base_address.to_s(16)
+
+
+              # Compile to call ytl_thread_create
+              addr = lambda {
+                a = address_of('ytl_thread_create')
+                $symbol_table[a] = 'yth_thread_create'
+                a
+              }
+              thread_create = OpVarMemAddress.new(addr)
+              asm = context.assembler
+              asm.with_retry do
+                asm.push(BPR)
+                asm.push(THEPR)
+                asm.mov(TMPR, SPR)
+                asm.mov(FUNC_ARG[0], TMPR)
+                asm.mov(TMPR, @block_cs.var_base_immidiate_address)
+                asm.mov(FUNC_ARG[1], TMPR)
+              end
+              context = gen_call(context, thread_create, 2)
+              asm.with_retry do
+                asm.add(SPR, AsmType::MACHINE_WORD.size * 2)
+              end
+
+              context.ret_reg = RETR
+              context.ret_node = self
+
+              return context
+            else
+              super
+            end
+          else
+            super
+          end
+        end
+      end
+    end
+  end
+end
