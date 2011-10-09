@@ -9,11 +9,24 @@ def fib(x)
   end
 end
 
-th = YTLJit::Runtime::Thread.new do |arg|
-  a = fib(39)
+class Foo
+  def initialize
+    @res = 0
+  end
+
+  attr :res
+
+  def foo
+    YTLJit::Runtime::Thread.new do |arg|
+      p self
+      @res = fib(29)
+    end
+  end
 end
 
+foo = Foo.new
+th = foo.foo
 p "computing fib 2 threads"
 p fib(38)
 th.join
-p a
+p foo.res

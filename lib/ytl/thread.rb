@@ -26,6 +26,7 @@ module YTLJit
       end
       
       class SendThreadNewNode<SendNewArenaNode
+        include NodeUtil
         include SendSingletonClassUtil
         add_special_send_node :new
         
@@ -34,6 +35,7 @@ module YTLJit
           @yield_node = nil
           @block_cs = CodeSpace.new
           @block_args = []
+          @frame_info = search_frame_info
           @arguments.each_with_index do |ele, idx|
             nnode = nil
             if idx != 1 then
@@ -114,7 +116,11 @@ module YTLJit
               thread_create = OpVarMemAddress.new(addr)
               asm = context.assembler
               asm.with_retry do
-                asm.push(BPR)
+                asm.mov(TMPR, @frame_info.offset_arg(2, BPR))
+                asm.push(TMPR)  # self
+                asm.mov(TMPR, @frame_info.offset_arg(1, BPR))
+                asm.push(TMPR)  # block addr
+                asm.push(BPR)   # oldbp
                 asm.push(THEPR)
                 asm.mov(TMPR, SPR)
                 asm.mov(FUNC_ARG[0], TMPR)
@@ -123,7 +129,7 @@ module YTLJit
               end
               context = gen_call(context, thread_create, 2)
               asm.with_retry do
-                asm.add(SPR, AsmType::MACHINE_WORD.size * 2)
+                asm.add(SPR, AsmType::MACHINE_WORD.size * 4)
               end
 
               context.ret_reg = RETR
