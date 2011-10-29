@@ -86,6 +86,7 @@ module YTLJit
           if rrtype.is_a?(ClassClassWrapper) then
             rrtype = get_singleton_class_object(@arguments[2]).ruby_type
             if rrtype == Runtime::Thread then
+              cursig = context.to_signature
 
               # Generate block invoker
               tcontext = context.dup
@@ -104,8 +105,6 @@ module YTLJit
               asm.with_retry do
                 asm.ret
               end
-#              p @block_cs.base_address.to_s(16)
-
 
               # Compile to call ytl_thread_create
               addr = lambda {
@@ -117,7 +116,12 @@ module YTLJit
               asm = context.assembler
               asm.with_retry do
                 asm.mov(TMPR, @frame_info.offset_arg(2, BPR))
-                asm.push(TMPR)  # self
+                asm.push(TMPR)
+              end
+              context.ret_reg = TMPR
+              context = cursig[2].gen_copy(context)
+              asm.with_retry do
+                asm.push(context.ret_reg)  # self(copyed)
                 asm.mov(TMPR, @frame_info.offset_arg(1, BPR))
                 asm.push(TMPR)  # block addr
                 asm.push(BPR)   # oldbp
@@ -129,7 +133,7 @@ module YTLJit
               end
               context = gen_call(context, thread_create, 2)
               asm.with_retry do
-                asm.add(SPR, AsmType::MACHINE_WORD.size * 4)
+                asm.add(SPR, AsmType::MACHINE_WORD.size * 5)
               end
 
               context.ret_reg = RETR

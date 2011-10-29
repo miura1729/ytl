@@ -18,15 +18,18 @@ class Foo
 
   def foo
     YTLJit::Runtime::Thread.new do |arg|
-      p self
-      @res = fib(29)
+#      p self
+      @res = fib(30)
     end
   end
 end
 
+p self
 foo = Foo.new
 th = foo.foo
 p "computing fib 2 threads"
-p fib(38)
+p fib(30)
+# p th
+p foo.res
 th.join
 p foo.res
