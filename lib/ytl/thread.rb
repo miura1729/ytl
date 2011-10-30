@@ -55,7 +55,7 @@ module YTLJit
         end
       end
       
-      class SendThreadPselfNode<SendNewArenaNode
+      class SendThreadPselfNode<SendNode
         add_special_send_node :pself
         def collect_candidate_type_regident(context, slf)
           cursig = context.to_signature
@@ -67,6 +67,10 @@ module YTLJit
             super
           end
         end
+      end
+
+      class SendThreadCselfNode<SendThreadPselfNode
+        add_special_send_node :cself
       end
 
       class SendThreadNewNode<SendNewArenaNode

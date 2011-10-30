@@ -14,8 +14,10 @@ module YTLJit
   module Runtime
     class Thread
       def join
-        pself = self.pself
-        self.merged_join(pself.self_merge(self.cself, pself))
+        self._join
+        pslf = self.pself
+        newself = pslf.self_merge(self.cself, pslf)
+        self._merge(newself)
       end
     end
   end
