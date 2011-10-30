@@ -25,6 +25,21 @@ module YTLJit
         end
       end
       
+      class SendThreadPselfNode<SendNewArenaNode
+        add_special_send_node :pself
+        def collect_candidate_type_regident(context, slf)
+          cursig = context.to_signature
+          slfcls = @arguments[2].decide_type_once(cursig)
+          if slfcls.ruby_type == Runtime::Thread then
+            tt = RubyType::BaseType.from_ruby_class(Object)
+            add_type(cursig, tt)
+            context
+          else
+            super
+          end
+        end
+      end
+
       class SendThreadNewNode<SendNewArenaNode
         include NodeUtil
         include SendSingletonClassUtil

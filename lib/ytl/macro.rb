@@ -347,7 +347,8 @@ module YTLJit
 
       class SelfRefNode
         def to_ruby(context)
-          context.ret_code.last << " self "
+          lv = cfi.frame_layout[2]
+          context.ret_code.last << " _#{lv.name.to_s} "
           context
         end
       end

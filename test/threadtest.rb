@@ -1,6 +1,5 @@
 # ytl -r runtime/thread.rb threadtest.rb
 p "start"
-a = 0
 def fib(x)
   if x < 2 then
     1
@@ -18,10 +17,14 @@ class Foo
 
   def foo
     YTLJit::Runtime::Thread.new do |arg|
-#      p self
       @res = fib(30)
     end
   end
+end
+
+# Merge method whose return value is self object of joined thread
+def self_merge(cself, pself)
+  cself
 end
 
 p self
@@ -29,7 +32,7 @@ foo = Foo.new
 th = foo.foo
 p "computing fib 2 threads"
 p fib(30)
-# p th
-p foo.res
+p th
+
 th.join
 p foo.res
