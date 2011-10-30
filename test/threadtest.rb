@@ -20,11 +20,14 @@ class Foo
       @res = fib(30)
     end
   end
-end
 
-# Merge method whose return value is self object of joined thread
-def self_merge(cself, pself)
-  cself
+  # Merge method whose return value is self object of joined thread
+#=begin
+  def self_merge(cself, pself)
+    cself
+  end
+#=end
+
 end
 
 p self

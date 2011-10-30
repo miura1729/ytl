@@ -6,6 +6,10 @@ tr_context.import_object(YTLJit::Runtime, :Thread, Runtime::Thread)
 <<-'EOS'
 #
 
+def self_merge(cself, pself)
+  cself
+end
+
 module YTLJit
   module Runtime
     class Thread

@@ -1,5 +1,35 @@
 module YTLJit
   module VM
+    module TypeCodeGen
+      module YTLJitRuntimeThreadTypeBoxedCodeGen
+        include TypeUtil
+        def instance
+          ni = self.dup
+          ni.instance_eval { extend YTLJitRuntimeThreadTypeBoxedCodeGen }
+          ni.init
+          ni
+        end
+
+        def init
+          @element_type = nil
+        end
+
+        attr_accessor :element_type
+
+        def gen_copy(context)
+          context
+        end
+
+        def have_element?
+          true
+        end
+
+        def inspect
+          "{#{@ruby_type} self=#{@element_type.inspect}}"
+        end
+      end
+    end
+
     module Node
       class SimpleVectorRefNode<BaseNode
         def initialize(parent, offset, basereg)
@@ -31,8 +61,7 @@ module YTLJit
           cursig = context.to_signature
           slfcls = @arguments[2].decide_type_once(cursig)
           if slfcls.ruby_type == Runtime::Thread then
-            tt = RubyType::BaseType.from_ruby_class(Object)
-            add_type(cursig, tt)
+            add_type(cursig, slfcls.element_type[nil][0])
             context
           else
             super
@@ -88,6 +117,8 @@ module YTLJit
 
             tt = RubyType::BaseType.from_ruby_class(Runtime::Thread)
             add_type(context.to_signature, tt)
+            slfnode = @frame_info.frame_layout[-1]
+            add_element_node(tt, cursig, slfnode, nil, context)
             context = @yield_node.collect_candidate_type(context)
             return context
           end
