@@ -95,9 +95,14 @@ module YTLJit
           end
           func = DirectBlockNode.new(self, @arguments[1])
           @yield_node = SendNode.new(self, func, @block_args, 0, 0)
+          @modified_instance_var = nil
+          @curpare = [nil, []]
         end
 
         def collect_info(context)
+          context.modified_instance_var[:@_prev_self] ||= []
+          context.modified_instance_var[:@_prev_self].push @curpare
+          @modified_instance_var = context.modified_instance_var
           @arguments.each do |arg|
             context = arg.collect_info(context)
           end
@@ -107,9 +112,9 @@ module YTLJit
 
         def collect_candidate_type_regident(context, slf)
           slfcls = @arguments[2].get_constant_value
-          cursig = context.to_signature
           tt = RubyType::BaseType.from_ruby_class(slfcls[0])
           if tt.ruby_type == Runtime::Thread then
+            cursig = context.to_signature
             blknode = @arguments[1]
             yargs = @block_args
             ysignat = @yield_node.signature(context)
@@ -123,6 +128,12 @@ module YTLJit
             add_type(context.to_signature, tt)
             slfnode = @frame_info.frame_layout[-1]
             add_element_node(tt, cursig, slfnode, nil, context)
+            
+            @curpare[0] = slfnode
+            if !@curpare[1].include?(cursig) then
+              @curpare[1].push cursig
+            end
+
             context = @yield_node.collect_candidate_type(context)
             return context
           end
@@ -163,15 +174,35 @@ module YTLJit
                 a
               }
               thread_create = OpVarMemAddress.new(addr)
+
+              addr = lambda {
+                a = address_of('ytl_ivar_set_boxing')
+                $symbol_table[a] = 'yth_ivar_set_boxing'
+                a
+              }
+              ivar_set = OpVarMemAddress.new(addr)
+              ivaroff = @modified_instance_var.keys.index(:@_prev_self)
+              orgslf = OpIndirect.new(SPR, AsmType::MACHINE_WORD.size)
+
               asm = context.assembler
+              context.start_using_reg(TMPR2)
               asm.with_retry do
                 asm.mov(TMPR, @frame_info.offset_arg(2, BPR))
                 asm.push(TMPR)
               end
               context.ret_reg = TMPR
               context = cursig[2].gen_copy(context)
+              
               asm.with_retry do
-                asm.push(context.ret_reg)  # self(copyed)
+                asm.push(context.ret_reg)
+
+                #  write prev self to copyed self
+                asm.mov(TMPR2, orgslf)
+                asm.mov(FUNC_ARG[0], context.ret_reg)
+                asm.mov(FUNC_ARG[1], ivaroff)
+                asm.mov(FUNC_ARG[2], TMPR2)
+                asm.call_with_arg(ivar_set, 3)
+
                 asm.mov(TMPR, @frame_info.offset_arg(1, BPR))
                 asm.push(TMPR)  # block addr
                 asm.push(BPR)   # oldbp
@@ -186,6 +217,7 @@ module YTLJit
                 asm.add(SPR, AsmType::MACHINE_WORD.size * 5)
               end
 
+              context.end_using_reg(TMPR2)
               context.ret_reg = RETR
               context.ret_node = self
 
