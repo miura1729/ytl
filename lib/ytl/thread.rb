@@ -115,26 +115,33 @@ module YTLJit
           tt = RubyType::BaseType.from_ruby_class(slfcls[0])
           if tt.ruby_type == Runtime::Thread then
             cursig = context.to_signature
+            slfnode = @frame_info.frame_layout[-1]
             blknode = @arguments[1]
-            yargs = @block_args
-            ysignat = @yield_node.signature(context)
-            blknode.collect_candidate_type(context, yargs, ysignat)
-
-            @arguments.zip(@block_args) do |bele, oele|
-              same_type(bele, oele, cursig, cursig, context)
+            [@arguments[0], blknode, slfnode].zip(@block_args) do |bele, oele|
+              same_type(oele, bele, cursig, cursig, context)
             end
+
+            yargs = @block_args
+            context = @yield_node.collect_candidate_type(context)
+            ysignat = @yield_node.signature(context)
+            context = blknode.collect_candidate_type(context, yargs, ysignat)
 
             tt = RubyType::BaseType.from_ruby_class(Runtime::Thread)
             add_type(context.to_signature, tt)
-            slfnode = @frame_info.frame_layout[-1]
+            joinsig = cursig.dup
+            joinsig[1] = RubyType::BaseType.from_ruby_class(NilClass)
+            joinsig[2] = tt
             add_element_node(tt, cursig, slfnode, nil, context)
+            add_element_node(tt, ysignat, slfnode, nil, context)
+            same_type(slfnode, slfnode, ysignat, cursig, context)
+            add_element_node(tt, joinsig, slfnode, nil, context)
+            same_type(slfnode, slfnode, joinsig, cursig, context)
             
             @curpare[0] = slfnode
             if !@curpare[1].include?(cursig) then
               @curpare[1].push cursig
             end
 
-            context = @yield_node.collect_candidate_type(context)
             return context
           end
 
