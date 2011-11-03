@@ -16,9 +16,14 @@ class Foo
   attr_accessor :res
 
   def foo
-    YTLJit::Runtime::Thread.new do |arg|
-      @res = fib(30)
+    th = YTLJit::Runtime::Thread.new do |arg|
+      @res = fib(38)
     end
+
+    p "computing fib 2 threads fib(40)"
+    @res = fib(39)
+
+    th.join
   end
 
   def self_merge(cself, pself)
@@ -28,11 +33,7 @@ class Foo
 end
 
 foo = Foo.new
-th = foo.foo
-p "computing fib 2 threads fib(32)"
-foo.res = fib(31)
-
-th.join
-p foo.res  # fib(32)
-p "single fib(32)"
-p fib(32)
+foo.foo
+p foo.res  # fib(40)
+p "single fib(40)"
+p fib(40)
