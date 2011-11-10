@@ -21,8 +21,8 @@ task :bench do
    "bm_so_ackermann.rb", "bm_so_concatenate.rb", "bm_so_random.rb", 
    "bm_so_object.rb", "bm_so_nested_loop.rb", "bm_so_sieve.rb", 
    "bm_so_partial_sums.rb", "bm_so_mandelbrot.rb", "bm_so_nbody.rb", 
-   "bm_so_nsieve.rb", "bm_so_count_words.rb", 
-   "bm_app_pentomino.rb", "ao-render.rb"
+   "bm_so_nsieve.rb", "bm_so_count_words.rb", "bm_so_fannkuch.rb", 
+   "ao-render.rb", "bm_app_pentomino.rb" 
   ].each do |f|
     fn = File.join(BENCH_DIR, f)
     Benchmark.benchmark(
@@ -32,7 +32,7 @@ task :bench do
       print "#{f} \n"
       x.report("ytl         "){ system "ytl #{fn} > /dev/null" }
       x.report("ytl compile "){ system "ytl --compile-only #{fn} > /dev/null" }
-      if cnt < 14 then
+      if cnt < 16 then
         x.report("ytl unboxed "){ system "ytl --compile-array-as-unboxed #{fn} > /dev/null" }
       end
       x.report("ruby        "){ system "ruby #{fn} > /dev/null" }
