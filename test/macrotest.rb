@@ -8,16 +8,18 @@ class Module
 end
 
 class Foo
+  myattr :foo, :bar
+  def initialize
+    @foo = 1
+    @bar = 3
+  end
   def myattr(x)
     p x
   end
 end
 
-myattr :foo, :bar
 Foo.new.myattr("abc")
-
-# Can't psss this test yet
-=begin
+p Foo.new.bar
 
 def fact(x)
   if x == 0 then
@@ -31,5 +33,5 @@ def fact_inline(x)
   eval fact(x)
 end
 
+y= 1
 p fact_inline(5)
-=end

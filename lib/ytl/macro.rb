@@ -302,11 +302,17 @@ module YTLJit
         def to_ruby(context)
           arg = @parent.arguments
           context.ret_code.last << "("
+          name = @name
+          callee = nil
           if @parent.is_fcall or @parent.is_vcall then
-            context.ret_code.last << @name.to_s
+            callee = SendNode.get_macro_tab[name]
+            if callee then
+              name = ("ytl__eval_" + name.to_s).to_sym
+            end
+            context.ret_code.last << name.to_s
           else
             context = arg[2].to_ruby(context)
-            context.ret_code.last << ".#{@name}"
+            context.ret_code.last << ".#{name}"
           end
           if arg[3] then
             context.ret_code.last << "("
@@ -323,6 +329,18 @@ module YTLJit
             context.work_prefix.push "bl"
             context = arg[1].to_ruby(context)
             context.work_prefix.pop
+          end
+          if callee then
+            context.ret_code.last << "[0]"
+            callee.each do |rec, cele|
+              if cele.is_a?(BaseNode) then
+                SendNode.get_macro_tab[@name][rec] = true
+                tcontext = ToRubyContext.new
+                code = cele.to_ruby(tcontext).ret_code.last
+                proc = eval("lambda" + code)
+                SendNode.get_macro_tab[@name][rec] = proc
+              end
+            end
           end
           context.ret_code.last << ")\n"
           context
@@ -347,8 +365,7 @@ module YTLJit
 
       class SelfRefNode
         def to_ruby(context)
-          lv = cfi.frame_layout[2]
-          context.ret_code.last << " _#{lv.name.to_s} "
+          context.ret_code.last << " self "
           context
         end
       end
