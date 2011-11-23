@@ -30,8 +30,9 @@ def fact(x)
 end
 
 def fact_inline(x)
-  eval fact(x)
+  eval "\" a = #{fact(x)} \""
 end
 
-y= 1
+y= 5
 p fact_inline(5)
+

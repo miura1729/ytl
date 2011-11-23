@@ -82,10 +82,11 @@ class Range
 
   def collect
     res = []
-    i =  0
+    rp =  0
     self.each do |n|
-      res[i] = yield self[i]
-      i = i + 1
+      res[rp] = yield n
+      rp = rp + 1
+rp.disp_type
     end
 
     res
