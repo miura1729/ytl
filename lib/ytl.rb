@@ -33,6 +33,10 @@ module YTL
     opt.on('--disp-signature', 'Display signature of method') do |f|
       ytlopt[:disp_signature] = f
     end
+
+    opt.on('--insert-signature-comment', 'insert comment of signature') do |f|
+      ytlopt[:insert_signature_comment] = f
+    end
     
     opt.on('--dump-context', 'Dump context(registor/stack) for debug') do |f|
       ytlopt[:dump_context] = f
@@ -76,7 +80,7 @@ module YTL
     prelude = File.join(File.dirname(__FILE__), "..", "runtime", "prelude.rb")
     rf = File.read(prelude)
     prog = eval(rf)
-    is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
+    is = RubyVM::InstructionSequence.compile(prog, prelude, 
                                              "", 0, ISEQ_OPTS).to_a
     VMLib::InstSeqTree.new(nil, is)
   end
@@ -150,7 +154,7 @@ module YTL
       rf = File.read(fn)
       prog = eval(rf)
       progs.push prog
-      is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
+      is = RubyVM::InstructionSequence.compile(prog, fn, 
                                                "", 0, ISEQ_OPTS).to_a
       iseq = VMLib::InstSeqTree.new(nil, is)
       tr = VM::YARVTranslatorCRubyObject.new([iseq])
@@ -159,6 +163,7 @@ module YTL
     end
     
     tnode = nil
+    progarray = nil
     case File.extname(ARGV[0])
     when ".ytl"
       File.open(ARGV[0]) do |fp|
@@ -172,6 +177,9 @@ module YTL
       
     when ".rb"
       prog = File.read(ARGV[0])
+      if options[:insert_signature_comment] then
+        progarray = prog.split(/\n/)
+      end
       is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
                                                "", 0, ISEQ_OPTS).to_a
       iseq = VMLib::InstSeqTree.new(nil, is)
@@ -185,6 +193,7 @@ module YTL
       tnode = tr.translate(tr_context)
     end
     $0 = ARGV[0]
+    file_name = ARGV[0]
     ARGV.shift
     
     ci_context = VM::CollectInfoContext.new(tnode)
@@ -232,6 +241,21 @@ module YTL
       tnode.code_space.disassemble
     end
     
+    if options[:insert_signature_comment] then
+      progarray.each_with_index do |lin, lno|
+        if cinfo = c_context.comment[file_name][lno] and cinfo[0] then
+          print "#  #{cinfo[0]} \n"
+          cinfo[1..-1].each do |sig, res|
+            print "#     #{sig[3..-1]} -> #{res.inspect} \n"
+            print "#     self    #{sig[2].inspect} \n"
+            print "#     block   #{sig[2].inspect} \n"
+            print "# \n"
+          end
+        end
+        print lin, "\n"
+      end
+    end
+
     tcs = tnode.code_space
     STDOUT.flush
     if !options[:compile_only] then
