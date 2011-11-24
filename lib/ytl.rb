@@ -248,7 +248,7 @@ module YTL
           cinfo[1..-1].each do |sig, res|
             print "#     #{sig[3..-1]} -> #{res.inspect} \n"
             print "#     self    #{sig[2].inspect} \n"
-            print "#     block   #{sig[2].inspect} \n"
+            print "#     block   #{sig[1].inspect} \n"
             print "# \n"
           end
         end
