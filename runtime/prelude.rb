@@ -86,7 +86,6 @@ class Range
     self.each do |n|
       res[rp] = yield n
       rp = rp + 1
-rp.disp_type
     end
 
     res
