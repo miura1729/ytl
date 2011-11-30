@@ -243,7 +243,7 @@ module YTL
     
     if options[:insert_signature_comment] then
       progarray.each_with_index do |lin, lno|
-        if cinfo = c_context.comment[file_name][lno] and cinfo[0] then
+        if cinfo = c_context.comment[file_name][lno] # and cinfo[0] then
           print "#  #{cinfo[0]} \n"
           cinfo[1..-1].each do |sig, res|
             print "#     #{sig[3..-1]} -> #{res.inspect} \n"
