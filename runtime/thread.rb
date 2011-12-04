@@ -19,6 +19,7 @@ module YTLJit
     class Thread
       def join
         _join
+p "joined"
         pslf = self_of_caller
         self.pself = pslf
         newself = pslf.self_merge(self.cself, pslf)

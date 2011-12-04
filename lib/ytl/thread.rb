@@ -170,8 +170,16 @@ module YTLJit
               end
               tcontext = @yield_node.compile(tcontext)
               tcontext.end_using_reg(TMPR2)
+              addr = lambda {
+                a = address_of('ytl_thread_exit')
+                $symbol_table[a] = 'yth_thread_exit'
+                a
+              }
+              thread_exit = OpVarMemAddress.new(addr)
               asm.with_retry do
-                asm.ret
+                asm.push(tcontext.ret_reg)
+                asm.call(thread_exit)
+                # never reach here
               end
 
               # Compile to call ytl_thread_create

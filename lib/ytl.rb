@@ -122,6 +122,7 @@ module YTL
     tnode.collect_info(ci_context)
     
     dmylit = VM::Node::LiteralNode.new(tnode, nil)
+    dmylit2 = VM::Node::LiteralNode.new(tnode, Object.new)
     arg = [dmylit, dmylit, dmylit]
     sig = []
     arg.each do |ele|
@@ -205,6 +206,7 @@ module YTL
     end
     
     dmylit = VM::Node::LiteralNode.new(tnode, nil)
+    dmylit2 = VM::Node::LiteralNode.new(tnode, Object.new)
     arg = [dmylit, dmylit, dmylit]
     sig = []
     arg.each do |ele|
