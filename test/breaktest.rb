@@ -1,6 +1,6 @@
 def test0
   begin
-    return
+    return false
   ensure
     p "BAR0"
   end
@@ -17,7 +17,7 @@ end
 def test2
   [1, 2, 3].each do |n|
     p n
-    return
+    return false
   end
   p "bar2"
 end
@@ -26,7 +26,7 @@ def test3
   begin
     [1, 2, 3].each do |n|
       p n
-      return
+      return false
     end
     p "foo3"
   ensure
@@ -47,13 +47,13 @@ def test4
 end
 
 
-test0
+p test0
 
-test1
-test2
+p test1
+p test2
 
-test3
-test4
+p test3
+p test4
 
 =begin
 # Not support yet
@@ -82,3 +82,17 @@ def test6
   end
 end
 =end
+
+def test7
+  [1, 2, 3].each do |m|
+    [4, 5, 6].each do |n|
+      p m
+      p n
+      return false if n + m == 7
+    end
+    p "bar7-1"
+  end
+  p "bar7-2"
+end
+
+p test7
