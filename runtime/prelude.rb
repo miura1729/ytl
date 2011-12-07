@@ -188,5 +188,14 @@ class Fixnum
   end
 end
 
+class IO
+  def each_line
+    while str = gets
+      yield str
+    end
+    nil
+  end
+end
+
 EOS
 
