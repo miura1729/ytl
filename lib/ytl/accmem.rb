@@ -53,6 +53,9 @@ module YTLJit
                   if kvalue.type.kind == :int then
                     ttype = RubyType::BaseType.from_ruby_class(Fixnum)
                     add_type(context.to_signature, ttype)
+                  elsif kvalue.type.kind == :float then
+                    ttype = RubyType::BaseType.from_ruby_class(Float)
+                    add_type(context.to_signature, ttype)
                   else
                     raise "Unkown type #{kvalue.type} #{kvalue.type.kind}"
                   end
@@ -105,36 +108,64 @@ module YTLJit
           context
         end
 
-        def gen_read_mem(context, size)
+        def gen_read_mem(context, type)
+          size = type.size
           asm = context.assembler
-          case size
-          when 8
-            asm.with_retry do
-              if context.ret_reg != RAX then
-                asm.mov(RAX, context.ret_reg)
+          case type.kind
+          when :int
+            case size
+            when 8
+              asm.with_retry do
+                if context.ret_reg != RAX then
+                  asm.mov(RAX, context.ret_reg)
+                end
+                asm.mov(RAX, INDIRECT_RAX)
               end
-              asm.mov(RAX, INDIRECT_RAX)
-            end
-            context.ret_reg = RAX
-            
-          when 4
-            asm.with_retry do
-              if context.ret_reg != EAX then
-                asm.mov(EAX, context.ret_reg)
+              context.ret_reg = RAX
+              
+            when 4
+              asm.with_retry do
+                if context.ret_reg != EAX then
+                  asm.mov(EAX, context.ret_reg)
+                end
+                asm.mov(EAX, INDIRECT_EAX)
               end
-              asm.mov(EAX, INDIRECT_EAX)
+              context.ret_reg = EAX
+              
+            when 2
+              asm.with_retry do
+                asm.mov(AL, context.ret_reg)
+                asm.mov(AL, INDIRECT_AL)
+              end
+              context.ret_reg = EAX
+              
+            else
+              raise "Unkown Scalar size #{kvalue}"
             end
-            context.ret_reg = EAX
-            
-          when 2
-            asm.with_retry do
-              asm.mov(AL, context.ret_reg)
-              asm.mov(AL, INDIRECT_AL)
+
+          when :float
+            case size
+            when 8
+              asm.with_retry do
+                if context.ret_reg != RAX then
+                  asm.mov(RAX, context.ret_reg)
+                end
+                asm.movsd(RETFR, INDIRECT_RAX)
+              end
+              context.ret_reg = RETFR
+              
+            when 4
+              asm.with_retry do
+                if context.ret_reg != EAX then
+                  asm.mov(EAX, context.ret_reg)
+                end
+                asm.movss(RETFR, INDIRECT_EAX)
+              end
+              context.ret_reg = RETFR
+              
+            else
+              raise "Unkown Scalar size #{kvalue}"
             end
-            context.ret_reg = EAX
-            
-          else
-            raise "Unkown Scalar size #{kvalue}"
           end
 
           context
@@ -182,13 +213,16 @@ module YTLJit
               context.ret_reg = RETFR
               
             when AsmType::Scalar
-              context = gen_read_mem(context, kvalue.size)
+              context = gen_read_mem(context, kvalue)
               
             when AsmType::StructMember
               typeobj = kvalue.type
               case typeobj
               when AsmType::Scalar
-                context = gen_read_mem(context, typeobj.size)
+                asm.with_retry do
+                  asm.add(context.ret_reg, kvalue.offset)
+                end
+                context = gen_read_mem(context, typeobj)
                 
               else
                 raise "Unkown Struct Member type #{kvalue}"
