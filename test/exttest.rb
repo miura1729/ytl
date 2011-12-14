@@ -23,13 +23,16 @@ a = YTL::Memory.instance
 b = c.address
 p b
 p c
+YTLJit::AsmType::RString[:as][:heap][:len] = 42
 p YTLJit::AsmType::VALUE
 p YTLJit::AsmType::RBasic[:klass]
 p YTLJit::AsmType::RString[:as][:heap][:len]
 p YTLJit::AsmType::RString[:basic][:flags]
+p YTLJit::AsmType::RFloat[:float_value]
 p a[b, :machine_word]
-p a[b, :float]
 #p a[0x106667b8, YTLJit::AsmType::RString[:as][:heap][:ptr]]
+p a[b, :float]
 p a[b, YTLJit::AsmType::RString[:basic][:flags]]
 p a[b, YTLJit::AsmType::RString[:as][:heap][:len]]
+p a[b, YTLJit::AsmType::RFloat[:float_value]]
 p a[b, :machine_word]
