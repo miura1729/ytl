@@ -23,7 +23,7 @@ a = YTL::Memory.instance
 b = c.address
 p b
 p c
-YTLJit::AsmType::RString[:as][:heap][:len] = 42
+a[b, YTLJit::AsmType::RFloat[:float_value]] = 3.14
 p YTLJit::AsmType::VALUE
 p YTLJit::AsmType::RBasic[:klass]
 p YTLJit::AsmType::RString[:as][:heap][:len]

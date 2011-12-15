@@ -7,31 +7,15 @@ end
 module YTLJit
   module VM
     module Node
-
-      class SendElementRefMemoryNode<SendElementRefNode
+      
+      module AccMemUtil
         include SendUtil
         include X86
         include X64
 
-        add_special_send_node :[]
-
-        def fill_result_cache(context)
-          slf = @arguments[2]
-          slfval = @arguments[2].get_constant_value
-          if slfval then
-            slfval =slfval[0]
-
-            idxval = @arguments[3].get_constant_value
-            if idxval then
-              idxval = idxval[0]
-              @result_cache = slfval[idxval]
-            end
-          end
-
-          context
-        end
-
-        def collect_candidate_type_regident(context, slf)
+        def collect_candidate_type_regident_common(context, slf)
+          cursig = context.to_signature
+          @arguments[3].decide_type_once(cursig)
           if slf.ruby_type <= YTL::Memory then
             kind = @arguments[4]
             kvalue = kind.get_constant_value
@@ -42,20 +26,20 @@ module YTLJit
               case kvalue
               when :char, :word, :dword, :machine_word
                 fixtype = RubyType::BaseType.from_ruby_class(Fixnum)
-                add_type(context.to_signature, fixtype)
+                add_type(cursig, fixtype)
                 
               when :float 
                 floattype = RubyType::BaseType.from_ruby_class(Float)
-                add_type(context.to_signature, floattype)
+                add_type(cursig, floattype)
                 
               when AsmType::StructMember
                 if kvalue.type.is_a?(AsmType::Scalar) then
                   if kvalue.type.kind == :int then
                     ttype = RubyType::BaseType.from_ruby_class(Fixnum)
-                    add_type(context.to_signature, ttype)
+                    add_type(cursig, ttype)
                   elsif kvalue.type.kind == :float then
                     ttype = RubyType::BaseType.from_ruby_class(Float)
-                    add_type(context.to_signature, ttype)
+                    add_type(cursig, ttype)
                   else
                     raise "Unkown type #{kvalue.type} #{kvalue.type.kind}"
                   end
@@ -66,7 +50,7 @@ module YTLJit
               when AsmType::Scalar
                 if kvalue.kind == :int then
                   ttype = RubyType::BaseType.from_ruby_class(Fixnum)
-                  add_type(context.to_signature, ttype)
+                  add_type(cursig, ttype)
 
                 else
                   raise "Unkown type"
@@ -79,7 +63,7 @@ module YTLJit
               
             else
               fixtype = RubyType::BaseType.from_ruby_class(Fixnum)
-              add_type(context.to_signature, fixtype)
+              add_type(cursig, fixtype)
             end
 
             context
@@ -88,7 +72,7 @@ module YTLJit
               slf.ruby_type <= AsmType::Array then
             tt = AsmType::PointedData
             pointedtype = RubyType::BaseType.from_ruby_class(tt)
-            add_type(context.to_signature, pointedtype)
+            add_type(cursig, pointedtype)
             context
 
           elsif slf.ruby_type <= AsmType::Struct or
@@ -96,16 +80,12 @@ module YTLJit
               slf.ruby_type <= AsmType::StructMember then
             tt = AsmType::StructMember
             stmemtype = RubyType::BaseType.from_ruby_class(tt)
-            add_type(context.to_signature, stmemtype)
+            add_type(cursig, stmemtype)
             context
 
           else
             super
           end
-        end
-
-        def compile_ref_scalar(context, typeobj)
-          context
         end
 
         def gen_read_mem(context, type)
@@ -170,7 +150,103 @@ module YTLJit
 
           context
         end
-        
+
+        def gen_write_mem(context, type)
+          size = type.size
+          asm = context.assembler
+          case type.kind
+          when :int
+            case size
+            when 8
+              asm.with_retry do
+                if context.ret_reg != RAX then
+                  asm.mov(RAX, context.ret_reg)
+                end
+                asm.mov(INDIRECT_TMPR2, RAX)
+              end
+              context.ret_reg = RAX
+              
+            when 4
+              asm.with_retry do
+                if context.ret_reg != EAX then
+                  asm.mov(EAX, context.ret_reg)
+                end
+                asm.mov(INDIRECT_TMPR2, EAX)
+              end
+              context.ret_reg = EAX
+              
+            when 2
+              asm.with_retry do
+                asm.mov(AL, context.ret_reg)
+                asm.mov(INDIRECT_TMPR2, AL)
+              end
+              context.ret_reg = EAX
+              
+            else
+              raise "Unkown Scalar size #{kvalue}"
+            end
+
+          when :float
+            case size
+            when 8
+              asm.with_retry do
+                if context.ret_reg != RETFR then
+                  asm.mov(RETFR, context.ret_reg)
+                end
+                asm.movsd(INDIRECT_TMPR2, RETFR)
+              end
+              context.ret_reg = RETFR
+              
+            when 4
+              asm.with_retry do
+                if context.ret_reg != RETFR then
+                  asm.mov(RETFR, context.ret_reg)
+                end
+                asm.movss(INDIRECT_TMPR2, RETFR)
+              end
+              context.ret_reg = RETFR
+              
+            else
+              raise "Unkown Scalar size #{kvalue}"
+            end
+          end
+
+          context
+        end
+
+        def fill_result_cache(context)
+          slf = @arguments[2]
+          slfval = @arguments[2].get_constant_value
+          if slfval then
+            slfval =slfval[0]
+
+            idxval = @arguments[3].get_constant_value
+            if idxval then
+              idxval = idxval[0]
+              @result_cache = slfval[idxval]
+            end
+          end
+
+          context
+        end
+      end
+
+      class SendElementRefMemoryNode<SendElementRefNode
+        include AccMemUtil
+        include SendUtil
+        include X86
+        include X64
+
+        add_special_send_node :[]
+
+        def collect_candidate_type_regident(context, slf)
+          collect_candidate_type_regident_common(context, slf)
+        end
+
+        def compile_ref_scalar(context, typeobj)
+          context
+        end
+
         def compile(context)
           slf = @arguments[2]
           slf.decide_type_once(context.to_signature)
@@ -259,6 +335,93 @@ module YTLJit
             end
             
             super
+          else
+            super
+          end
+        end
+      end
+
+      class SendElementAssignMemoryNode<SendElementAssignNode
+        include AccMemUtil
+        include SendUtil
+        include X86
+        include X64
+
+        add_special_send_node :[]=
+
+        def collect_candidate_type_regident(context, slf)
+          # value to set
+          context = @arguments[5].collect_candidate_type(context)
+          collect_candidate_type_regident_common(context, slf)
+        end
+
+        def compile(context)
+          slf = @arguments[2]
+          slf.decide_type_once(context.to_signature)
+          if slf.type.ruby_type <= YTL::Memory then
+            asm = context.assembler
+
+            kind = @arguments[4]
+            kvalue = nil
+            case kind
+            when LiteralNode
+              kvalue = kind.value
+
+            else
+              context = kind.compile(context)
+              if context.ret_reg.is_a?(OpVarImmidiateAddress) then
+                objid = (context.ret_reg.value >> 1)
+                kvalue = ObjectSpace._id2ref(objid)
+              end
+            end
+
+            context = @arguments[3].compile(context)
+            context.start_using_reg(TMPR2)
+            asm.with_retry do
+              asm.mov(TMPR2, context.ret_reg)
+            end
+            context = @arguments[5].compile(context)
+
+            case kvalue
+            when :machine_word
+              asm.with_retry do
+                if context.ret_reg != RETR then
+                  asm.mov(RETR, context.ret_reg)
+                end
+                asm.mov(INDIRECT_TMPR2, RETR)
+              end
+              context.ret_reg = RETR
+              
+            when :float
+              asm.with_retry do
+                if context.ret_reg != RETFR then
+                  asm.mov(RETFR, context.ret_reg)
+                end
+                asm.mov(INDIRECT_TMPR, RETFR)
+              end
+              context.ret_reg = RETFR
+              
+            when AsmType::Scalar
+              context = gen_write_mem(context, kvalue)
+              
+            when AsmType::StructMember
+              typeobj = kvalue.type
+              case typeobj
+              when AsmType::Scalar
+                asm.with_retry do
+                  asm.add(TMPR2, kvalue.offset)
+                end
+                context = gen_write_mem(context, typeobj)
+                
+              else
+                raise "Unkown Struct Member type #{kvalue}"
+              end
+            end
+            
+            context.ret_node = self
+            context.end_using_reg(TMPR2)
+
+            @body.compile(context)
           else
             super
           end
