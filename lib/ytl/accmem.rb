@@ -13,7 +13,7 @@ module YTLJit
         include X86
         include X64
 
-        def collect_candidate_type_regident_common(context, slf)
+        def collect_candidate_type_regident(context, slf)
           cursig = context.to_signature
           @arguments[3].decide_type_once(cursig)
           if slf.ruby_type <= YTL::Memory then
@@ -240,7 +240,7 @@ module YTLJit
         add_special_send_node :[]
 
         def collect_candidate_type_regident(context, slf)
-          collect_candidate_type_regident_common(context, slf)
+          super
         end
 
         def compile_ref_scalar(context, typeobj)
@@ -351,8 +351,10 @@ module YTLJit
 
         def collect_candidate_type_regident(context, slf)
           # value to set
-          context = @arguments[5].collect_candidate_type(context)
-          collect_candidate_type_regident_common(context, slf)
+          if slf.ruby_type <= YTL::Memory then
+            context = @arguments[5].collect_candidate_type(context)
+          end
+          super
         end
 
         def compile(context)
