@@ -23,6 +23,11 @@ a = YTL::Memory.instance
 b = c.address
 p b
 p c
+foo =  (1.9).__id__ * 2
+p foo
+p a[foo, YTLJit::AsmType::RFloat[:float_value]]
+a[foo, YTLJit::AsmType::RFloat[:float_value]] = 2.0
+p a[foo, YTLJit::AsmType::RFloat[:float_value]]
 a[b, YTLJit::AsmType::RFloat[:float_value]] = 3.14
 p YTLJit::AsmType::VALUE
 p YTLJit::AsmType::RBasic[:klass]
