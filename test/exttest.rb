@@ -1,5 +1,6 @@
 # Please Execute 
 # ruby -I lib lib/ytl.rb -r runtime/type.rb test/exttest.rb
+=begin
 module YTL
   class Memory
   end
@@ -16,6 +17,8 @@ end
 def id(x)
   x
 end
+=end
+include YTLJit::AsmType
 
 c = YTLJit::Runtime::Arena.new
 a = YTL::Memory.instance
@@ -23,10 +26,12 @@ a = YTL::Memory.instance
 b = c.address
 p b
 p c
-foo =  (1.9).__id__ * 2
-p foo
-p a[foo, YTLJit::AsmType::RFloat[:float_value]]
+n = [1.9]
+foo =  (n[0]).__id__ * 2
+p n
+p a[foo, RFloat[:float_value]]
 a[foo, YTLJit::AsmType::RFloat[:float_value]] = 2.0
+p n
 p a[foo, YTLJit::AsmType::RFloat[:float_value]]
 a[b, YTLJit::AsmType::RFloat[:float_value]] = 3.14
 p YTLJit::AsmType::VALUE
