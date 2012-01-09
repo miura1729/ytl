@@ -10,23 +10,25 @@ end
 
 class Foo
   def initialize
-    @res = 0
+    @res = 32
   end
 
   attr_accessor :res
 
   def foo
     th = YTLJit::Runtime::Thread.new do |arg|
-      @res = fib(38)
+      @res = 64
+      @res = fib(39)
     end
 
     p "computing fib 2 threads fib(40)"
-    @res = fib(39)
+    @res = fib(38)
 
     th.join
   end
 
   def self_merge(cself, pself)
+    p cself.res
     pself.res = pself.res + cself.res
     pself
   end
