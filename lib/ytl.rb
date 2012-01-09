@@ -245,13 +245,24 @@ module YTL
     
     if options[:insert_signature_comment] then
       progarray.each_with_index do |lin, lno|
-        if cinfo = c_context.comment[file_name][lno] # and cinfo[0] then
-          print "#  #{cinfo[0]} \n"
-          cinfo[1..-1].each do |sig, res|
-            print "#     #{sig[3..-1]} -> #{res.inspect} \n"
-            print "#     self    #{sig[2].inspect} \n"
-            print "#     block   #{sig[1].inspect} \n"
-            print "# \n"
+        if cinfos = c_context.comment[file_name][lno] # and cinfo[0] then
+          cinfos.each do |cinfo|
+            case cinfo[0]
+            when 1
+              print "#  #{cinfo[1]} \n"
+              cinfo[2..-1].each do |sig, res|
+                print "#     #{sig[3..-1]} -> #{res.inspect} \n"
+                print "#     self    #{sig[2].inspect} \n"
+                print "#     block   #{sig[1].inspect} \n"
+                print "# \n"
+              end
+            when 2
+              print "# #{cinfo[1]} #{cinfo[2].inspect} \n"
+            when 3
+              if cinfo[1] == :local_export then
+                print "# please do't unroll stack \n"
+              end
+            end
           end
         end
         print lin, "\n"
