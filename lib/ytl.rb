@@ -81,7 +81,7 @@ module YTL
     rf = File.read(prelude)
     prog = eval(rf)
     is = RubyVM::InstructionSequence.compile(prog, prelude, 
-                                             "", 0, ISEQ_OPTS).to_a
+                                             "", 1, ISEQ_OPTS).to_a
     VMLib::InstSeqTree.new(nil, is)
   end
     
@@ -110,7 +110,7 @@ module YTL
     
     tnode = nil
     is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
-                                             "", 0, ISEQ_OPTS).to_a
+                                             "", 1, ISEQ_OPTS).to_a
     iseq = VMLib::InstSeqTree.new(nil, is)
     iseqs = [prelude_iseq, iseq]
     
@@ -156,7 +156,7 @@ module YTL
       prog = eval(rf)
       progs.push prog
       is = RubyVM::InstructionSequence.compile(prog, fn, 
-                                               "", 0, ISEQ_OPTS).to_a
+                                               "", 1, ISEQ_OPTS).to_a
       iseq = VMLib::InstSeqTree.new(nil, is)
       tr = VM::YARVTranslatorCRubyObject.new([iseq])
       tr_context.current_file_name = fn
@@ -182,7 +182,7 @@ module YTL
         progarray = prog.split(/\n/)
       end
       is = RubyVM::InstructionSequence.compile(prog, ARGV[0], 
-                                               "", 0, ISEQ_OPTS).to_a
+                                               "", 1, ISEQ_OPTS).to_a
       iseq = VMLib::InstSeqTree.new(nil, is)
       if options[:dump_yarv] then
         pp iseq
