@@ -83,13 +83,13 @@ class Range
   def collect
     res = []
     rp =  0
-#=begin
+=begin
     self.each do |n|
       res[rp] = yield n
       rp = rp + 1
     end
-#=end
-=begin
+=end
+#=begin
    i = self.first
    e = self.last
     if self.exclude_end? then
@@ -105,7 +105,7 @@ class Range
         i = i + 1
       end
     end
-=end
+#=end
 
     res
   end
