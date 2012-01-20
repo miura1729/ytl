@@ -10,18 +10,13 @@ def self_merge(cself, pself)
   cself
 end
 
-def pself2=(v)
-  nil
-end
-
 module YTLJit
   module Runtime
     class Thread
       def join
         _join
-        pslf = self_of_caller
-        self.pself = pslf
-        newself = pslf.self_merge(self.cself, pslf)
+        caller = self_of_caller
+        newself = caller.self_merge(self.cself, self.pself)
         _merge(newself)
       end
     end

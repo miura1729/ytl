@@ -115,7 +115,8 @@ module YTLJit
           tt = RubyType::BaseType.from_ruby_class(slfcls[0])
           if tt.ruby_type == Runtime::Thread then
             cursig = context.to_signature
-            slfnode = @frame_info.frame_layout[-1]
+            slfoff = @frame_info.real_offset(2)
+            slfnode = @frame_info.frame_layout[slfoff]
             blknode = @arguments[1]
             [@arguments[0], blknode, slfnode].zip(@block_args) do |bele, oele|
               same_type(oele, bele, cursig, cursig, context)
@@ -127,7 +128,7 @@ module YTLJit
             context = blknode.collect_candidate_type(context, yargs, ysignat)
 
             tt = RubyType::BaseType.from_ruby_class(Runtime::Thread)
-            add_type(context.to_signature, tt)
+            add_type(cursig, tt)
             joinsig = cursig.dup
             joinsig[1] = RubyType::BaseType.from_ruby_class(NilClass)
             joinsig[2] = tt
