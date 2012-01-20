@@ -1,5 +1,4 @@
 # ytl -r runtime/thread.rb threadtest.rb
-p "start"
 def fib(x)
   if x < 2 then
     1
@@ -8,34 +7,31 @@ def fib(x)
   end
 end
 
-class Foo
+class MultiFib
   def initialize
-    @res = 32
+    @res = 32 # 32 is dummy (not 0 to detect bug)
   end
-
   attr_accessor :res
 
-  def foo
-    th = YTLJit::Runtime::Thread.new do |arg|
-      @res = 64
-      @res = fib(39)
+  def compute(n)
+    th = YTLJit::Runtime::Thread.new do
+      @res = fib(n - 1)
     end
 
-    p "computing fib 2 threads fib(40)"
-    @res = fib(38)
+    @res = fib(n - 2)
 
     th.join
+    @res
   end
 
   def self_merge(cself, pself)
-    p cself.res
     pself.res = pself.res + cself.res
     pself
   end
 end
 
-foo = Foo.new
-foo.foo
-p foo.res  # fib(40)
-p "single fib(40)"
+mfib = MultiFib.new
+print "computing fib 2 threads fib(40) \n"
+p mfib.compute(40)
+print "single fib(40)\n"
 p fib(40)
