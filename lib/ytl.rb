@@ -9,7 +9,7 @@ include YTLJit
 module YTL
   include YTLJit
 
-  VERSION = "0.0.5"
+  VERSION = "0.0.6"
   
   ISEQ_OPTS = {  
     :peephole_optimization    => true,
