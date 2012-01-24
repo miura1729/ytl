@@ -198,11 +198,31 @@ p test_poly(2.0, 2.0, 1)
 p test_poly(2, 2, 0)
 p test_poly(2.0, 2.0, 0)
 
+p "test for swap"
 a = 1
 b = 3
 a, b = b + 1, a
 p a
 p b
+
+p "test for is_a?"
+p 1.is_a?(Float)
+p 1.9.is_a?(Float)
+p 1.is_a?(Fixnum)
+p 1.is_a?(Object)
+
+def dummy_p(val)
+  if val.is_a?(Fixnum)
+    p "Fixnum #{val}"
+  elsif val.is_a?(Float)
+    p "Float #{val}"
+  elsif val.is_a?(String)
+    p "String #{val}"
+  end
+end
+dummy_p(1)
+dummy_p(1.5)
+dummy_p("1.5")
 
 
 =begin
