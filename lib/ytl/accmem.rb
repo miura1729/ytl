@@ -231,7 +231,7 @@ module YTLJit
         end
       end
 
-      class SendElementRefMemoryNode<SendElementRefNode
+      class SendElementRefMemoryNode<SendNode.get_special_send_node(:[])
         include AccMemUtil
         include SendUtil
         include X86
@@ -341,7 +341,7 @@ module YTLJit
         end
       end
 
-      class SendElementAssignMemoryNode<SendElementAssignNode
+      class SendElementAssignMemoryNode<SendNode.get_special_send_node(:[]=)
         include AccMemUtil
         include SendUtil
         include X86
@@ -430,7 +430,7 @@ module YTLJit
         end
       end
 
-      class SendNewArenaNode<SendNewNode
+      class SendNewArenaNode<SendNode.get_special_send_node(:new)
         add_special_send_node :new
 
         def traverse_childlen
@@ -459,7 +459,7 @@ module YTLJit
         end
       end
 
-      class SendAddressNode<SendNode
+      class SendAddressNode<SendNode.get_special_send_node(:address)
         include InternalRubyType
         add_special_send_node :address
 
@@ -495,7 +495,7 @@ module YTLJit
         end
       end
 
-      class SendInstanceMemoryNode<SendNode
+      class SendInstanceMemoryNode<SendNode.get_special_send_node(:instance)
         add_special_send_node :instance
 
         def collect_candidate_type_regident(context, slf)
