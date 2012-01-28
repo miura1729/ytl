@@ -69,7 +69,7 @@ module YTLJit
         end
       end
 
-      class SendThreadCselfNode<SendNode.get_special_send_node(:cself)
+      class SendThreadCselfNode<SendThreadPselfNode
         add_special_send_node :cself
       end
 
