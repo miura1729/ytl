@@ -86,10 +86,14 @@ module YTLJit
           @frame_info = search_frame_info
           @arguments.each_with_index do |ele, idx|
             nnode = nil
-            if idx != 1 then
-              nnode = SimpleVectorRefNode.new(self, idx + 1, TMPR2)
-            else
+            if idx == 1 then
               nnode = @arguments[1]
+
+            elsif idx >= 3 then
+              nnode = SimpleVectorRefNode.new(self, idx + 3, TMPR2)
+              
+            else
+              nnode = SimpleVectorRefNode.new(self, idx + 1, TMPR2)
             end
             @block_args.push nnode
           end
@@ -118,10 +122,11 @@ module YTLJit
             slfoff = @frame_info.real_offset(2)
             slfnode = @frame_info.frame_layout[slfoff]
             blknode = @arguments[1]
-            [@arguments[0], blknode, slfnode].zip(@block_args) do |bele, oele|
+            argnode =[@arguments[0], blknode, slfnode, *@arguments[3..-1]]
+            argnode.zip(@block_args) do |bele, oele|
               same_type(oele, bele, cursig, cursig, context)
             end
-
+            
             yargs = @block_args
             context = @yield_node.collect_candidate_type(context)
             ysignat = @yield_node.signature(context)
@@ -201,7 +206,20 @@ module YTLJit
               orgslf = OpIndirect.new(SPR, AsmType::MACHINE_WORD.size)
 
               asm = context.assembler
+
+              # have alternate arguments
+              if @arguments.size > 3 then
+                @arguments[3..-1].each do |ele|
+                  context = ele.compile(context) 
+                  asm.with_retry do
+                    asm.mov(TMPR, context.ret_reg)
+                    asm.push(TMPR)
+                  end
+                end
+              end
+
               context.start_using_reg(TMPR2)
+
               asm.with_retry do
                 asm.mov(TMPR, @frame_info.offset_arg(2, BPR))
                 asm.push(TMPR)

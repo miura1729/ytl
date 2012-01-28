@@ -14,11 +14,11 @@ class MultiFib
   attr_accessor :res
 
   def compute(n)
-    th = YTLJit::Runtime::Thread.new do
-      @res = fib(n - 1)
+    th = YTLJit::Runtime::Thread.new(n) do |n2|
+      @res = fib(n2 - 2)
     end
 
-    @res = fib(n - 2)
+    @res = fib(n - 1)
 
     th.join
     @res
