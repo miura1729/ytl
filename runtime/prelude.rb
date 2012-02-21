@@ -52,6 +52,19 @@ class Array
     res
   end
 
+  def find
+    i = 0
+    e = self.size
+    while i < e
+      if yield self[i] then
+        return self[i]
+      end
+      i = i + 1
+    end
+
+    return nil
+  end
+
   def at(idx)
     self[idx]
   end
