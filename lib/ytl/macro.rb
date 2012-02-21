@@ -39,7 +39,7 @@ module YTLJit
           args = context.ret_code.pop
           pre = context.work_prefix.join('_')
           if args != "" then
-            context.ret_code.last << "|#{args}, #{pre}block|"
+            context.ret_code.last << "|#{args}|"
           end
           context.ret_code.last << "#{pre}state = 0\n"
           context.ret_code.last << "#{pre}value = nil\n"
@@ -318,22 +318,17 @@ module YTLJit
             context.ret_code.last << "("
             arg[3..-1].each do |ae|
               context = ae.to_ruby(context)
-              context.ret_code.last.chomp!
               context.ret_code.last << ", "
             end
-            if callee then
-              context.ret_code.last << " "
-              if arg[1].is_a?(BlockTopNode) then
-                context.work_prefix.push "bl"
-                context = arg[1].to_ruby(context)
-                context.work_prefix.pop
-              else
-                context.ret_code.last << "nil"
-              end
-            else
-              context.ret_code.last.chop!
-            end
+            context.ret_code.last.chop!
+            context.ret_code.last.chop!
             context.ret_code.last << ")"
+          end
+          if arg[1].is_a?(BlockTopNode) then
+            context.ret_code.last << " "
+            context.work_prefix.push "bl"
+            context = arg[1].to_ruby(context)
+            context.work_prefix.pop
           end
           if callee then
             context.ret_code.last << "[0]"
