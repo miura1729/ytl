@@ -71,6 +71,11 @@ module YTL
            'Compile Array as unboxed if nesseary(not excape, not use special methods)') do |f|
       ytlopt[:compile_array_as_uboxed] = f
     end
+
+    opt.on('--inline-block', 
+           'Inline block') do |f|
+      ytlopt[:inline_block] = f
+    end
     
     opt.parse!(argv)
     ytlopt
@@ -105,6 +110,7 @@ module YTL
     
   def self.reduced_main(prog, options)
     tr_context = VM::YARVContext.new
+    tr_context.options = options
     
     import_ruby_object(tr_context)
     
@@ -148,6 +154,7 @@ module YTL
     
   def self.main(options)
     tr_context = VM::YARVContext.new
+    tr_context.options = options
     progs = []
     
     import_ruby_object(tr_context)
