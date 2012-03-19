@@ -22,18 +22,20 @@ task :bench do
    "bm_so_object.rb", "bm_so_nested_loop.rb", "bm_so_sieve.rb", 
    "bm_so_partial_sums.rb", "bm_so_mandelbrot.rb", "bm_so_nbody.rb", 
    "bm_so_nsieve.rb", "bm_so_count_words.rb", "bm_so_fannkuch.rb", 
-   "ao-render.rb", "bm_app_pentomino.rb" 
+   "bm_so_lists.rb",  "ao-render.rb", 
+   "bm_app_pentomino.rb" , "bm_so_fasta.rb",
   ].each do |f|
     fn = File.join(BENCH_DIR, f)
     Benchmark.benchmark(
-      " " * 13 + "     user     system      total      real \n", 13,
+      "      user     system      total         real \n", 20,
       "%10.6U %10.6Y %10.6t %10.6r\n"
                         ) do |x|
       print "#{f} \n"
       x.report("ytl         "){ system "ytl #{fn} > /dev/null" }
       x.report("ytl compile "){ system "ytl --compile-only #{fn} > /dev/null" }
-      if cnt < 16 then
+      if cnt < 17 then
         x.report("ytl unboxed "){ system "ytl --compile-array-as-unboxed #{fn} > /dev/null" }
+        x.report("ytl unbox/inline "){ system "ytl --compile-array-as-unboxed --inline-block #{fn} > /dev/null" }
       end
       x.report("ruby        "){ system "ruby #{fn} > /dev/null" }
       cnt += 1
