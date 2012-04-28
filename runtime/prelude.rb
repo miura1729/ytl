@@ -16,6 +16,26 @@ class Module
   end
 end
 
+class Object
+  def require(fn)
+    ff = nil
+    $LOAD_PATH.each do |dir|
+      f = dir + "/" + fn
+      if File.exist?(f)
+        fp = open(f)
+        a = fp.read
+        eval a
+        fp.close
+        ff = true
+        break
+      end
+    end
+    if ff == nil then
+      raise "No such file #{fn}"
+    end
+  end
+end
+
 class Array
   def each
     i = 0
