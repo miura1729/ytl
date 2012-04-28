@@ -240,6 +240,23 @@ module YTLJit
         end
       end
 
+      class ThrowNode
+        def to_ruby(context)
+          case @state
+          when 1                # return
+            context.ret_code.last << "return "
+          when 2                # break
+            context.ret_code.last << "break "
+          else                  # raise
+            context.ret_code.last << "raise "
+          end
+          context.ret_code.last << "("
+          context = @exception_object.to_ruby(context)
+          context.ret_code.last << ")\n"
+          context
+        end
+      end
+
       class LetNode
       end
 
@@ -397,6 +414,13 @@ module YTLJit
           context.ret_code.last << "#{@name.to_s} = "
           context = @val.to_ruby(context)
           context.ret_code.last << "\n"
+          context
+        end
+      end
+
+      class GlobalVarRefNode
+        def to_ruby(context)
+          context.ret_code.last << "#{@name.to_s}"
           context
         end
       end
