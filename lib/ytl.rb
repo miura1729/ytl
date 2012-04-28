@@ -225,7 +225,7 @@ module YTL
     begin
       tnode.collect_candidate_type(ti_context, arg, sig)
     end until ti_context.convergent
-    ti_context = tnode.collect_candidate_type(ti_context, arg, sig)
+    # ti_context = tnode.collect_candidate_type(ti_context, arg, sig)
     
     if fn = options[:write_node_after_ti] then
       dump_node(tnode, fn)
