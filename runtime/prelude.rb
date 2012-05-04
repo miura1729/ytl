@@ -19,13 +19,49 @@ end
 class Object
   def require(fn)
     ff = nil
-    $LOAD_PATH.each do |dir|
+    $_YTL_LOAD_PATH.each do |dir|
       f = dir + "/" + fn
-      if File.exist?(f)
-        fp = open(f)
+      
+      f2 = f
+      if $_YTL_FEATURES.include?(f2) then
+        ff = true
+        next
+      end
+      if File.file?(f2) then
+p f2
+        $_YTL_FEATURES.push f2
+        fp = open(f2)
         a = fp.read
         eval a
         fp.close
+        ff = true
+        break
+      end
+
+      f2 = f + ".rb"
+      if $_YTL_FEATURES.include?(f2) then
+        ff = true
+        next
+      end
+      if File.file?(f2) then
+p f2
+        $_YTL_FEATURES.push f2
+        fp = open(f2)
+        a = fp.read
+        eval a
+        fp.close
+        ff = true
+        break
+      end
+
+      f2 = f + ".so"
+      if $_YTL_FEATURES.include?(f2) then
+        ff = true
+        next
+      end
+      if File.file?(f2) then
+        $_YTL_FEATURES.push f2
+        # require f2
         ff = true
         break
       end

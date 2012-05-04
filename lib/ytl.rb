@@ -22,6 +22,11 @@ module YTL
     ytlopt[:execute_before_compile] = []
     opt = OptionParser.new
     
+    opt.on('-I PATH', 
+           'Add require/load path') do |f|
+      $_YTL_LOAD_PATH.push f
+    end
+
     opt.on('--disasm', 'Disasemble generated code') do |f|
       ytlopt[:disasm] = f
     end
@@ -287,5 +292,9 @@ end
 Version = "#{YTL::VERSION} (ytljit #{YTLJit::VERSION})"
 
 if __FILE__ == $0 then
+  # Global variable for require
+  $_YTL_LOAD_PATH = $LOAD_PATH
+  $_YTL_FEATURES = []
+
   YTL::main(YTL::parse_opt(ARGV))
 end
