@@ -77,9 +77,15 @@ module YTL
       ytlopt[:compile_array_as_uboxed] = f
     end
 
+
     opt.on('--inline-block', 
            'Inline block') do |f|
       ytlopt[:inline_block] = f
+    end
+
+    opt.on('-p', 
+           'Enable Profile') do |f|
+      ytlopt[:profile_mode] = f
     end
     
     opt.parse!(argv)
@@ -285,6 +291,10 @@ module YTL
     STDOUT.flush
     if !options[:compile_only] then
       tcs.call(tcs.base_address)
+    end
+
+    if options[:profile_mode] then
+      YTLJit::VM::Node::TraceNode.prof_disp(file_name, prog.split(/\n/))
     end
   end
 end
