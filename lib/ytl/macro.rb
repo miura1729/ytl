@@ -267,6 +267,12 @@ module YTLJit
         end
       end
 
+      class TraceNode
+        def to_ruby(context)
+          @body.to_ruby(context)
+        end
+      end
+
       class ClassValueNode
       end
 
