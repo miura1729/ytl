@@ -28,7 +28,6 @@ class Object
         next
       end
       if File.file?(f2) then
-p f2
         $_YTL_FEATURES.push f2
         fp = open(f2)
         a = fp.read
