@@ -224,12 +224,25 @@ dummy_p(1)
 dummy_p(1.5)
 dummy_p("1.5")
 
-
-=begin
-def id(a, *b)
+def foo2(a, b, c)
   p a
+  p b
+  p c
+  c.disp_type
 end
-id(*[1, 2, 3])
+a = [1, "2", 3]
+a[1] = "a"
+foo2(*a)
+b = []
+c = [1, "c", 1.2]
+#c = [1, 23, 4]
+i = 0
+c.disp_type
+while i < 3 
+  b[i] = c[i]
+  i = i + 1
+end
+foo2(*b)
 
 =begin
 for i in 1..2
