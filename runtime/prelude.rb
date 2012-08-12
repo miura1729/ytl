@@ -181,15 +181,19 @@ class Range
   def to_a
     i = self.first
     e = self.last
-    res = []
+    k = 0
+    siz = e - i + 1
+    res = Array.new(siz, 0)
     if self.exclude_end? then
       while i < e
-        res << i
+        res[k] = i
+        k = k + 1
         i = i + 1
       end
     else
       while i <= e
-        res << i
+        res[k] = i
+        k = k + 1
         i = i + 1
       end
     end
