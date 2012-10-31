@@ -83,6 +83,17 @@ class Array
     self
   end
 
+  def each_index
+    i = 0
+    e = self.size
+    while i < e
+      yield i
+      i = i + 1
+    end
+
+    self
+  end
+
   def collect
     res = []
     i = 0
