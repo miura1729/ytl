@@ -300,11 +300,11 @@ module YTL
 end
 
 Version = "#{YTL::VERSION} (ytljit #{YTLJit::VERSION})"
+$_YTL_FEATURES = []
+$_YTL_LOAD_PATH = $LOAD_PATH
 
 if __FILE__ == $0 then
   # Global variable for require
-  $_YTL_LOAD_PATH = $LOAD_PATH
-  $_YTL_FEATURES = []
 
   YTL::main(YTL::parse_opt(ARGV))
 end
