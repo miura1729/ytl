@@ -261,6 +261,14 @@ class Fixnum
     self
   end
 
+  def abs
+    if self < 0 then
+      -self
+    else
+      self
+    end
+  end
+
   def **(n)
     a = 1
     while n > 0
