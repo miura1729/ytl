@@ -11,7 +11,10 @@ module YTL
     context.import_object(Object, :File, File)
     context.import_object(Object, :IO, IO)
     context.import_object(Object, :Math, Math)
+
     context.import_object(Object, :Exception, Exception)
+    context.import_object(Object, :IndexError, IndexError)
+    context.import_object(Object, :ArgumentError, ArgumentError)
   end
 end
   
