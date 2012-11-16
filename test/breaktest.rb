@@ -46,6 +46,16 @@ def test4
   end
 end
 
+def test42
+  begin
+    [1, 2, 3].each do |n|
+      p n
+      break
+    end
+    p "foo42"
+  end
+end
+
 
 p test0
 
@@ -53,6 +63,7 @@ p test1
 p test2
 
 p test3
+p test42
 p test4
 
 =begin
